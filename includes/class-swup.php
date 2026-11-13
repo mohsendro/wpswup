@@ -65,6 +65,14 @@ class Swup {
 		do_action( 'sll_after_animation_styles', $animation, $duration );
 	}
 
+	/**
+	 * Cache / optimizer compatibility for Swup XHR navigations.
+	 *
+	 * - Vary so full-page caches (WP Rocket, LiteSpeed, Cloudflare, etc.) store
+	 *   a separate variant for Swup requests vs full browser loads.
+	 * - Personalized sessions (logged-in / Woo cart) never get a public cache.
+	 * - Public pages stay cacheable so CDN + optimizers accelerate SPA fetches.
+	 */
 	public function maybe_add_cache_headers(): void {
 		if ( ! $this->opt( 'compat_cache_plugins', true ) ) {
 			return;
@@ -75,25 +83,41 @@ class Swup {
 			|| isset( $_SERVER['HTTP_X_SWUP_REQUEST'] )
 		);
 
-		if ( $is_swup ) {
-			header( 'Vary: X-Requested-With, Accept-Encoding', false );
-			$bypass = is_user_logged_in();
-			if ( ! $bypass && ! empty( $_COOKIE ) ) {
-				foreach ( array_keys( $_COOKIE ) as $ck ) {
-					if ( str_starts_with( (string) $ck, 'wordpress_logged_in_' ) || str_starts_with( (string) $ck, 'wp_woocommerce_session_' ) ) {
-						$bypass = true;
-						break;
-					}
+		if ( ! $is_swup ) {
+			return;
+		}
+
+		// Tell caches this response differs by request type.
+		header( 'Vary: X-Requested-With, Accept-Encoding', false );
+
+		$bypass = is_user_logged_in();
+		if ( ! $bypass && ! empty( $_COOKIE ) ) {
+			foreach ( array_keys( $_COOKIE ) as $ck ) {
+				$ck = (string) $ck;
+				if (
+					str_starts_with( $ck, 'wordpress_logged_in_' )
+					|| str_starts_with( $ck, 'wp_woocommerce_session_' )
+					|| str_starts_with( $ck, 'woocommerce_cart_hash' )
+					|| str_starts_with( $ck, 'woocommerce_items_in_cart' )
+				) {
+					$bypass = true;
+					break;
 				}
 			}
-			if ( $bypass ) {
-				header( 'X-Rocket-No-Cache: 1' );
-				header( 'Cache-Control: private, no-store, no-cache, must-revalidate' );
-			} else {
-				header( 'Cache-Control: public, max-age=300, s-maxage=600' );
-			}
-			do_action( 'sll_swup_request_headers', $bypass );
 		}
+
+		if ( $bypass ) {
+			// Bypass common full-page caches for private sessions.
+			header( 'X-Rocket-No-Cache: 1' );
+			header( 'X-LiteSpeed-Cache-Control: no-cache' );
+			header( 'Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0' );
+			header( 'Pragma: no-cache' );
+		} else {
+			// Public pages: short browser cache + longer shared/CDN cache.
+			header( 'Cache-Control: public, max-age=300, s-maxage=600, stale-while-revalidate=60' );
+		}
+
+		do_action( 'sll_swup_request_headers', $bypass );
 	}
 
 	public function pagebuilder_compat(): void {
