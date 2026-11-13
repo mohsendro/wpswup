@@ -23,6 +23,7 @@ class Assets {
 	const SCROLL_PLUGIN_VERSION  = '3.2.0';
 	const PRELOAD_PLUGIN_VERSION = '3.2.12';
 	const FORMS_PLUGIN_VERSION   = '2.1.0';
+	const PROGRESS_PLUGIN_VERSION = '3.2.0';
 
 	public function __construct() {
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_frontend' ] );
@@ -49,6 +50,14 @@ class Assets {
 				'https://unpkg.com/@swup/head-plugin@' . self::HEAD_PLUGIN_VERSION . '/dist/index.umd.js',
 				[ 'swup' ],
 				self::HEAD_PLUGIN_VERSION,
+				true
+			);
+
+			wp_enqueue_script(
+				'swup-progress-plugin',
+				'https://unpkg.com/@swup/progress-plugin@' . self::PROGRESS_PLUGIN_VERSION . '/dist/index.umd.js',
+				[ 'swup' ],
+				self::PROGRESS_PLUGIN_VERSION,
 				true
 			);
 
@@ -90,6 +99,13 @@ class Assets {
 			SLL_VERSION
 		);
 
+		wp_enqueue_style(
+			'sll-progress',
+			SLL_URL . 'assets/css/sll-progress.css',
+			[],
+			SLL_VERSION
+		);
+
 		$deps = $opts['swup_enabled'] ? [ 'swup' ] : [];
 		wp_enqueue_script(
 			'sll-main',
@@ -114,6 +130,16 @@ class Assets {
 			SLL_VERSION,
 			true
 		);
+
+		if ( defined( 'ELEMENTOR_VERSION' ) ) {
+			wp_enqueue_script(
+				'sll-elementor',
+				SLL_URL . 'assets/js/sll-elementor.js',
+				[ 'sll-main' ],
+				SLL_VERSION,
+				true
+			);
+		}
 
 		wp_localize_script( 'sll-main', 'sllConfig', $this->js_config() );
 	}
