@@ -1,5 +1,5 @@
 <?php
-namespace SLL;
+namespace Wpswup;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -8,7 +8,7 @@ defined( 'ABSPATH' ) || exit;
  *
  * Server-side helpers for Swup 4 SPA transitions.
  *
- * @package SLL
+ * @package Wpswup
  */
 class Swup {
 
@@ -22,9 +22,9 @@ class Swup {
 	public function add_swup_body_class( array $classes ): array {
 		if ( $this->is_swup_enabled() ) {
 			$classes[] = 'swup-enabled';
-			$classes[] = 'sll-swup';
+			$classes[] = 'wpswup-swup';
 			$anim = (string) $this->opt( 'swup_animation', 'fade' );
-			$classes[] = 'sll-theme-' . sanitize_html_class( $anim );
+			$classes[] = 'wpswup-theme-' . sanitize_html_class( $anim );
 		}
 		return $classes;
 	}
@@ -38,8 +38,8 @@ class Swup {
 		$duration  = (int) $this->opt( 'swup_duration', 400 );
 		$sec       = max( 0.05, $duration / 1000 );
 
-		echo '<style id="sll-swup-anim">';
-		echo ':root{--sll-duration:' . esc_attr( (string) $duration ) . 'ms}';
+		echo '<style id="wpswup-swup-anim">';
+		echo ':root{--wpswup-duration:' . esc_attr( (string) $duration ) . 'ms}';
 		echo 'body{';
 		echo '--swup-fade-theme-duration:' . esc_attr( (string) $sec ) . 's;';
 		echo '--swup-slide-theme-duration-fade:' . esc_attr( (string) $sec ) . 's;';
@@ -53,7 +53,7 @@ class Swup {
 		}
 
 		echo '</style>';
-		do_action( 'sll_after_animation_styles', $animation, $duration );
+		do_action( 'wpswup_after_animation_styles', $animation, $duration );
 	}
 
 	public function maybe_add_cache_headers(): void {
@@ -97,7 +97,7 @@ class Swup {
 			header( 'Cache-Control: public, max-age=300, s-maxage=600, stale-while-revalidate=60' );
 		}
 
-		do_action( 'sll_swup_request_headers', $bypass );
+		do_action( 'wpswup_swup_request_headers', $bypass );
 	}
 
 	public function pagebuilder_compat(): void {
@@ -109,7 +109,7 @@ class Swup {
 			add_filter( 'elementor/frontend/print_google_fonts', '__return_true' );
 		}
 
-		do_action( 'sll_pagebuilder_compat' );
+		do_action( 'wpswup_pagebuilder_compat' );
 	}
 
 	private function opt( string $key, $default = null ) {
