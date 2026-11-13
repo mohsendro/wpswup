@@ -6,27 +6,39 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Class Assets
  *
- * Enqueues Swup.js (via CDN), official plugins, the lazy-renderer runtime,
- * and per-section CSS/JS files discovered from template-lazy folders.
- *
- * Compatible with Swup 4.x (hooks system, visit object, built-in scroll).
+ * Enqueues Swup 4 + official themes/plugins and minified plugin assets.
  *
  * @package SLL
  */
 class Assets {
 
-	/** Pinned Swup core version (CDN). */
-	const SWUP_VERSION = '4.10.0';
-
-	/** Official plugin versions compatible with Swup 4. */
-	const HEAD_PLUGIN_VERSION    = '2.3.1';
-	const SCROLL_PLUGIN_VERSION  = '3.2.0';
-	const PRELOAD_PLUGIN_VERSION = '3.2.12';
-	const FORMS_PLUGIN_VERSION   = '2.1.0';
-	const PROGRESS_PLUGIN_VERSION = '3.2.0';
+	const SWUP_VERSION             = '4.10.0';
+	const HEAD_PLUGIN_VERSION      = '2.3.1';
+	const SCROLL_PLUGIN_VERSION    = '3.2.0';
+	const PRELOAD_PLUGIN_VERSION   = '3.2.12';
+	const FORMS_PLUGIN_VERSION     = '2.1.0';
+	const PROGRESS_PLUGIN_VERSION  = '3.2.0';
+	const FADE_THEME_VERSION       = '2.0.2';
+	const SLIDE_THEME_VERSION      = '2.0.2';
+	const OVERLAY_THEME_VERSION    = '2.0.2';
 
 	public function __construct() {
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_frontend' ] );
+	}
+
+	private function asset_url( string $relative ): string {
+		$min = preg_replace( '/\.(js|css)$/', '.min.$1', $relative );
+		$path_min = SLL_DIR . $min;
+		if ( file_exists( $path_min ) ) {
+			return SLL_URL . $min;
+		}
+		return SLL_URL . $relative;
+	}
+
+	private function asset_ver( string $relative ): string {
+		$min  = preg_replace( '/\.(js|css)$/', '.min.$1', $relative );
+		$path = file_exists( SLL_DIR . $min ) ? SLL_DIR . $min : SLL_DIR . $relative;
+		return file_exists( $path ) ? (string) filemtime( $path ) : SLL_VERSION;
 	}
 
 	public function enqueue_frontend(): void {
@@ -35,8 +47,9 @@ class Assets {
 		}
 
 		$opts = sll()->settings->all();
+		$anim = (string) ( $opts['swup_animation'] ?? 'fade' );
 
-		if ( $opts['swup_enabled'] ) {
+		if ( ! empty( $opts['swup_enabled'] ) ) {
 			wp_enqueue_script(
 				'swup',
 				'https://unpkg.com/swup@' . self::SWUP_VERSION . '/dist/Swup.umd.js',
@@ -60,6 +73,32 @@ class Assets {
 				self::PROGRESS_PLUGIN_VERSION,
 				true
 			);
+
+			if ( $anim === 'fade' ) {
+				wp_enqueue_script(
+					'swup-fade-theme',
+					'https://unpkg.com/@swup/fade-theme@' . self::FADE_THEME_VERSION . '/dist/index.umd.js',
+					[ 'swup' ],
+					self::FADE_THEME_VERSION,
+					true
+				);
+			} elseif ( in_array( $anim, [ 'slide', 'slide_reversed' ], true ) ) {
+				wp_enqueue_script(
+					'swup-slide-theme',
+					'https://unpkg.com/@swup/slide-theme@' . self::SLIDE_THEME_VERSION . '/dist/index.umd.js',
+					[ 'swup' ],
+					self::SLIDE_THEME_VERSION,
+					true
+				);
+			} elseif ( str_starts_with( $anim, 'overlay' ) ) {
+				wp_enqueue_script(
+					'swup-overlay-theme',
+					'https://unpkg.com/@swup/overlay-theme@' . self::OVERLAY_THEME_VERSION . '/dist/index.umd.js',
+					[ 'swup' ],
+					self::OVERLAY_THEME_VERSION,
+					true
+				);
+			}
 
 			if ( ! empty( $opts['swup_scroll_plugin'] ) ) {
 				wp_enqueue_script(
@@ -94,49 +133,49 @@ class Assets {
 
 		wp_enqueue_style(
 			'sll-lazy',
-			SLL_URL . 'assets/css/sll-lazy.css',
+			$this->asset_url( 'assets/css/sll-lazy.css' ),
 			[],
-			SLL_VERSION
+			$this->asset_ver( 'assets/css/sll-lazy.css' )
 		);
 
 		wp_enqueue_style(
 			'sll-progress',
-			SLL_URL . 'assets/css/sll-progress.css',
+			$this->asset_url( 'assets/css/sll-progress.css' ),
 			[],
-			SLL_VERSION
+			$this->asset_ver( 'assets/css/sll-progress.css' )
 		);
 
-		$deps = $opts['swup_enabled'] ? [ 'swup' ] : [];
+		$deps = ! empty( $opts['swup_enabled'] ) ? [ 'swup' ] : [];
 		wp_enqueue_script(
 			'sll-main',
-			SLL_URL . 'assets/js/sll-main.js',
+			$this->asset_url( 'assets/js/sll-main.js' ),
 			$deps,
-			SLL_VERSION,
+			$this->asset_ver( 'assets/js/sll-main.js' ),
 			true
 		);
 
 		wp_enqueue_script(
 			'sll-woodmart-fix',
-			SLL_URL . 'assets/js/sll-woodmart-fix.js',
+			$this->asset_url( 'assets/js/sll-woodmart-fix.js' ),
 			[ 'sll-main' ],
-			SLL_VERSION,
+			$this->asset_ver( 'assets/js/sll-woodmart-fix.js' ),
 			true
 		);
 
 		wp_enqueue_script(
 			'sll-compat',
-			SLL_URL . 'assets/js/sll-compat.js',
+			$this->asset_url( 'assets/js/sll-compat.js' ),
 			[ 'sll-main' ],
-			SLL_VERSION,
+			$this->asset_ver( 'assets/js/sll-compat.js' ),
 			true
 		);
 
 		if ( defined( 'ELEMENTOR_VERSION' ) ) {
 			wp_enqueue_script(
 				'sll-elementor',
-				SLL_URL . 'assets/js/sll-elementor.js',
+				$this->asset_url( 'assets/js/sll-elementor.js' ),
 				[ 'sll-main' ],
-				SLL_VERSION,
+				$this->asset_ver( 'assets/js/sll-elementor.js' ),
 				true
 			);
 		}
@@ -153,7 +192,7 @@ class Assets {
 			'duration'          => (int) $opts['swup_duration'],
 			'cache'             => (bool) $opts['swup_cache'],
 			'containers'        => array_values( array_filter( array_map( 'trim', explode( ',', (string) ( $opts['swup_containers'] ?? '' ) ) ) ) ),
-			'containersAuto'     => empty( trim( (string) ( $opts['swup_containers'] ?? '' ) ) ),
+			'containersAuto'    => empty( trim( (string) ( $opts['swup_containers'] ?? '' ) ) ),
 			'linkSelector'      => $opts['swup_link_selector'],
 			'scrollReset'       => (bool) $opts['swup_scroll_reset'],
 			'scrollPlugin'      => (bool) ( $opts['swup_scroll_plugin'] ?? false ),
