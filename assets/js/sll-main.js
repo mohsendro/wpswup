@@ -94,118 +94,9 @@
 		return fallbackSel;
 	}
 
-	class LazyRenderer {
+	class SwupManager {
 		constructor( bus ) {
 			this.bus = bus;
-			this.observer = null;
-			this._loaded = new Set();
-		}
-		init() {
-			if ( ! cfg.lazyEnabled ) return;
-			this._createObserver();
-			this._observeAll();
-		}
-		refresh() {
-			if ( ! cfg.lazyEnabled ) return;
-			log( 'LazyRenderer.refresh()' );
-			this._observeAll();
-		}
-		_createObserver() {
-			this.observer = new IntersectionObserver(
-				( entries ) => {
-					entries.forEach( ( entry ) => {
-						if ( entry.isIntersecting ) this._load( entry.target );
-					} );
-				},
-				{ threshold: cfg.lazyThreshold || 0.1, rootMargin: cfg.lazyRootMargin || '0px 0px 200px 0px' }
-			);
-		}
-		_observeAll() {
-			document.querySelectorAll( '[data-render]' ).forEach( ( el ) => {
-				if ( el.classList.contains( 'sll-loaded' ) || el.classList.contains( 'sll-loading' ) ) return;
-				const key = this._key( el );
-				if ( ! this._loaded.has( key ) ) {
-					this.observer.observe( el );
-					log( 'Observing:', el.dataset.render );
-				}
-			} );
-		}
-		_key( el ) {
-			return el.dataset.render + '__' + ( el.id || Array.from( ( el.parentNode || document.body ).children ).indexOf( el ) );
-		}
-		async _load( el ) {
-			const template = el.dataset.render;
-			const key = this._key( el );
-			if ( this._loaded.has( key ) ) return;
-			this._loaded.add( key );
-			this.observer.unobserve( el );
-			let args = {};
-			try {
-				if ( el.dataset.renderArgs ) args = JSON.parse( el.dataset.renderArgs );
-			} catch ( e ) {}
-			el.setAttribute( 'aria-busy', 'true' );
-			el.classList.add( 'sll-loading' );
-			this.bus.emit( 'lazyBeforeLoad', { el, template, args } );
-			log( 'Loading section:', template, args );
-			try {
-				let html;
-				if ( cfg.restUrl ) {
-					const params = new URLSearchParams( args );
-					const url = cfg.restUrl + encodeURIComponent( template ) + ( params.toString() ? '?' + params : '' );
-					const res = await fetch( url, { headers: { 'X-WP-Nonce': cfg.restNonce || '' } } );
-					if ( res.ok ) {
-						const json = await res.json();
-						if ( json.success ) html = json.html;
-					}
-				}
-				if ( html === undefined ) {
-					const body = new URLSearchParams( {
-						action: 'sll_render_section',
-						nonce: cfg.nonce,
-						template: template,
-						args: JSON.stringify( args ),
-					} );
-					const res = await fetch( cfg.ajaxUrl, {
-						method: 'POST',
-						headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-						body: body.toString(),
-					} );
-					if ( ! res.ok ) throw new Error( 'HTTP ' + res.status );
-					const json = await res.json();
-					if ( ! json.success ) throw new Error( ( json.data && json.data.message ) || 'Server error' );
-					html = json.data.html;
-				}
-				el.classList.add( 'sll-entering' );
-				el.innerHTML = html;
-				el.removeAttribute( 'aria-busy' );
-				el.classList.remove( 'sll-loading' );
-				el.querySelectorAll( 'script' ).forEach( ( oldScript ) => {
-					const s = document.createElement( 'script' );
-					[ ...oldScript.attributes ].forEach( ( a ) => s.setAttribute( a.name, a.value ) );
-					s.textContent = oldScript.textContent;
-					oldScript.replaceWith( s );
-				} );
-				requestAnimationFrame( () => {
-					el.classList.remove( 'sll-entering' );
-					el.classList.add( 'sll-loaded' );
-				} );
-				this.bus.emit( 'lazyLoaded', { el, template, html } );
-				log( 'Loaded section:', template );
-			} catch ( err ) {
-				console.error( '[SLL] Failed to load section:', template, err );
-				el.classList.remove( 'sll-loading', 'sll-entering' );
-				el.classList.add( 'sll-error' );
-				el.removeAttribute( 'aria-busy' );
-				this._loaded.delete( key );
-				this.bus.emit( 'lazyError', { el, template, error: err } );
-			}
-		}
-	}
-
-	class SwupManager {
-		constructor( bus, lazyRenderer ) {
-			this.bus = bus;
-			this.lazyRenderer = lazyRenderer;
 			this.swup = null;
 			this.containers = [];
 		}
@@ -264,6 +155,21 @@
 				plugins.push( new SwupFormsPlugin() );
 			}
 
+			// Official Swup themes (enqueued by PHP based on selected animation)
+			const anim = ( cfg.animation || 'fade' ).toString();
+			const mainEl = ( this.containers && this.containers[0] ) ? this.containers[0] : '#swup';
+			if ( anim === 'fade' && typeof SwupFadeTheme !== 'undefined' ) {
+				plugins.push( new SwupFadeTheme( { mainElement: mainEl } ) );
+			} else if ( ( anim === 'slide' || anim === 'slide_reversed' ) && typeof SwupSlideTheme !== 'undefined' ) {
+				plugins.push( new SwupSlideTheme( { mainElement: mainEl, reversed: anim === 'slide_reversed' } ) );
+			} else if ( anim.indexOf( 'overlay' ) === 0 && typeof SwupOverlayTheme !== 'undefined' ) {
+				let dir = 'to-right';
+				if ( anim === 'overlay_left' ) dir = 'to-left';
+				else if ( anim === 'overlay_top' ) dir = 'to-top';
+				else if ( anim === 'overlay_bottom' ) dir = 'to-bottom';
+				plugins.push( new SwupOverlayTheme( { direction: dir } ) );
+			}
+
 			const extraPlugins = [];
 			this.bus.emit( 'swupPlugins', { plugins: extraPlugins } );
 			plugins.push( ...extraPlugins );
@@ -308,8 +214,6 @@
 			} );
 			s.hooks.on( 'page:view', ( visit ) => {
 				log( 'Swup: page:view', visit && visit.to && visit.to.url );
-				this.lazyRenderer._loaded.clear();
-				this.lazyRenderer.refresh();
 				this._reinitCompat( visit );
 				this.bus.emit( 'pageView', { swup: s, visit } );
 				document.dispatchEvent( new CustomEvent( 'sll:pageView', { detail: { visit } } ) );
@@ -368,6 +272,14 @@
 					log( 'WoodMart reinit warning', e );
 				}
 			}
+			// Close WoodMart overlays AFTER theme module reinit
+			if ( window.SLL && typeof window.SLL.scheduleCloseOverlays === 'function' ) {
+				window.SLL.scheduleCloseOverlays();
+			} else if ( window.SLL && typeof window.SLL.closeOverlays === 'function' ) {
+				window.SLL.closeOverlays();
+				setTimeout( function () { window.SLL.closeOverlays(); }, 50 );
+				setTimeout( function () { window.SLL.closeOverlays(); }, 200 );
+			}
 			document.dispatchEvent( new CustomEvent( 'sll:afterPageTransition', { detail: { visit } } ) );
 			if ( typeof jQuery !== 'undefined' ) {
 				jQuery( document ).trigger( 'sll_after_page_transition' );
@@ -376,19 +288,11 @@
 	}
 
 	const bus = new EventBus();
-	const lazyRenderer = new LazyRenderer( bus );
-	const swupManager = new SwupManager( bus, lazyRenderer );
+	const swupManager = new SwupManager( bus );
 
 	window.SLL = {
 		on: ( e, fn ) => bus.on( e, fn ),
 		off: ( e, fn ) => bus.off( e, fn ),
-		reload( selectorOrEl ) {
-			const el = typeof selectorOrEl === 'string' ? document.querySelector( selectorOrEl ) : selectorOrEl;
-			if ( ! el || ! el.dataset.render ) return;
-			el.classList.remove( 'sll-loaded', 'sll-error' );
-			lazyRenderer._loaded.delete( lazyRenderer._key( el ) );
-			if ( lazyRenderer.observer ) lazyRenderer.observer.observe( el );
-		},
 		redetectContainers() {
 			return resolveContainers();
 		},
@@ -398,18 +302,14 @@
 		get containers() {
 			return swupManager.containers;
 		},
-		get lazy() {
-			return lazyRenderer;
-		},
 		config: cfg,
 	};
 
 	const boot = () => {
-		lazyRenderer.init();
 		swupManager.init();
 		bus.emit( 'ready', { SLL: window.SLL } );
 		document.dispatchEvent( new CustomEvent( 'sll:ready' ) );
-		log( 'Ready (Swup 4, auto-container).' );
+		log( 'Ready (Swup 4).' );
 	};
 
 	if ( document.readyState === 'loading' ) {
