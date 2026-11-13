@@ -28,9 +28,6 @@ class Assets {
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_frontend' ] );
 	}
 
-	/**
-	 * Enqueue frontend assets.
-	 */
 	public function enqueue_frontend(): void {
 		if ( is_admin() ) {
 			return;
@@ -102,10 +99,17 @@ class Assets {
 			true
 		);
 
-		// WoodMart / off-canvas overlay cleanup after SPA navigations
 		wp_enqueue_script(
 			'sll-woodmart-fix',
 			SLL_URL . 'assets/js/sll-woodmart-fix.js',
+			[ 'sll-main' ],
+			SLL_VERSION,
+			true
+		);
+
+		wp_enqueue_script(
+			'sll-compat',
+			SLL_URL . 'assets/js/sll-compat.js',
 			[ 'sll-main' ],
 			SLL_VERSION,
 			true
