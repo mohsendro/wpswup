@@ -3,7 +3,7 @@
  * Plugin Name: WP Swup
  * Plugin URI:  https://github.com/mohsendro/wpswup
  * Description: SPA-like page transitions with Swup.js 4 for WordPress. Compatible with WooCommerce, Elementor, and WoodMart.
- * Version:     1.3.0
+ * Version:     1.4.0
  * Author:      Mohsen Derogar
  * Author URI:  https://github.com/mohsendro
  * License:     GPL-2.0+
@@ -15,25 +15,25 @@
 
 defined( 'ABSPATH' ) || exit;
 
-if ( ! defined( 'SLL_VERSION' ) ) {
-	define( 'SLL_VERSION', '1.3.0' );
+if ( ! defined( 'WPSWUP_VERSION' ) ) {
+	define( 'WPSWUP_VERSION', '1.4.0' );
 }
-if ( ! defined( 'SLL_FILE' ) ) {
-	define( 'SLL_FILE', __FILE__ );
+if ( ! defined( 'WPSWUP_FILE' ) ) {
+	define( 'WPSWUP_FILE', __FILE__ );
 }
-if ( ! defined( 'SLL_DIR' ) ) {
-	define( 'SLL_DIR', plugin_dir_path( __FILE__ ) );
+if ( ! defined( 'WPSWUP_DIR' ) ) {
+	define( 'WPSWUP_DIR', plugin_dir_path( __FILE__ ) );
 }
-if ( ! defined( 'SLL_URL' ) ) {
-	define( 'SLL_URL', plugin_dir_url( __FILE__ ) );
+if ( ! defined( 'WPSWUP_URL' ) ) {
+	define( 'WPSWUP_URL', plugin_dir_url( __FILE__ ) );
 }
-if ( ! defined( 'SLL_SLUG' ) ) {
-	define( 'SLL_SLUG', 'wpswup' );
+if ( ! defined( 'WPSWUP_SLUG' ) ) {
+	define( 'WPSWUP_SLUG', 'wpswup' );
 }
 
 spl_autoload_register( function ( $class ) {
-	$prefix = 'SLL\\';
-	$base   = SLL_DIR . 'includes/';
+	$prefix = 'Wpswup\\';
+	$base   = WPSWUP_DIR . 'includes/';
 
 	if ( strncmp( $prefix, $class, strlen( $prefix ) ) !== 0 ) {
 		return;
@@ -53,22 +53,16 @@ spl_autoload_register( function ( $class ) {
 	}
 } );
 
-// Bootstrap MO from PO when needed (pure-PHP, no gettext binary).
-$install_mo = SLL_DIR . 'languages/install-mo.php';
-if ( file_exists( $install_mo ) ) {
-	require_once $install_mo;
-}
-
 /**
  * Main plugin bootstrap.
  *
- * @return \SLL\Plugin
+ * @return \Wpswup\Plugin
  */
-function sll() {
-	return \SLL\Plugin::instance();
+function wpswup() {
+	return \Wpswup\Plugin::instance();
 }
 
 add_action( 'plugins_loaded', function () {
-	load_plugin_textdomain( 'wpswup', false, dirname( plugin_basename( SLL_FILE ) ) . '/languages' );
-	sll();
+	load_plugin_textdomain( 'wpswup', false, dirname( plugin_basename( WPSWUP_FILE ) ) . '/languages' );
+	wpswup();
 }, 5 );

@@ -10,7 +10,7 @@
 - ⚡ Zero-reload navigation via Swup.js 4
 - 🎨 Official Swup themes: fade, slide, overlay (+ directions), or none
 - 🔍 **Auto-detect content containers** (WoodMart, Elementor, common WP themes)
-- 🔧 PHP hooks + `window.SLL` JavaScript API
+- 🔧 PHP hooks + `window.WPSWUP` JavaScript API
 - 🏗️ Cache plugin headers (WP Rocket, LiteSpeed, …)
 - 🧩 WoodMart overlay / side-panel fix on SPA navigations
 - ⚙️ Settings → **WP Swup**
@@ -43,6 +43,11 @@ Optional: force full reload on specific links:
 
 ## Changelog
 
+### 1.4.0
+- Renamed all internal `SLL` / `sll` identifiers to `WPSWUP` / `wpswup` (namespace, constants, assets, JS API)
+- Standard WordPress i18n only: `.pot` / `.po` / `.mo` (removed `install-mo.php` and `.l10n.php`)
+- Migrates legacy `sll_options` to `wpswup_options` on load
+
 ### 1.3.0
 - Removed Lazy Section Rendering (will ship as a separate plugin later)
 - Plugin focused on Swup SPA transitions only
@@ -52,7 +57,7 @@ Optional: force full reload on specific links:
 - Official Swup theme instantiation in JS
 
 ### 1.2.1
-- Full WordPress i18n (pot / po / l10n.php)
+- Full WordPress i18n (pot / po / mo)
 - Official Swup themes selectable in settings
 
 ### 1.1.2
