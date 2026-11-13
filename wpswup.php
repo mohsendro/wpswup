@@ -3,7 +3,7 @@
  * Plugin Name: WP Swup
  * Plugin URI:  https://github.com/mohsendro/wpswup
  * Description: SPA-like page transitions with Swup.js 4 + scroll-based lazy section rendering for WordPress. Compatible with WooCommerce, Elementor, and WoodMart.
- * Version:     1.2.1
+ * Version:     1.2.2
  * Author:      Mohsen Derogar
  * Author URI:  https://github.com/mohsendro
  * License:     GPL-2.0+
@@ -16,7 +16,7 @@
 defined( 'ABSPATH' ) || exit;
 
 if ( ! defined( 'SLL_VERSION' ) ) {
-	define( 'SLL_VERSION', '1.2.1' );
+	define( 'SLL_VERSION', '1.2.2' );
 }
 if ( ! defined( 'SLL_FILE' ) ) {
 	define( 'SLL_FILE', __FILE__ );
@@ -39,48 +39,36 @@ spl_autoload_register( function ( $class ) {
 		return;
 	}
 
-	$relative = str_replace( '\\', '/', substr( $class, strlen( $prefix ) ) );
-	$file     = $base . 'class-' . strtolower( str_replace( [ '_', '\\' ], [ '-', '/' ], $relative ) ) . '.php';
+	$relative = substr( $class, strlen( $prefix ) );
+	$file     = $base . 'class-' . str_replace( '_', '-', strtolower( $relative ) ) . '.php';
 
-	if ( ! file_exists( $file ) && str_contains( $relative, 'Admin/' ) ) {
-		$file = $base . 'admin/class-' . strtolower( str_replace( '_', '-', basename( $relative ) ) ) . '.php';
+	// Admin subfolder
+	if ( str_starts_with( $relative, 'Admin\\' ) ) {
+		$rel  = substr( $relative, 6 );
+		$file = $base . 'admin/class-' . str_replace( '_', '-', strtolower( $rel ) ) . '.php';
 	}
 
 	if ( file_exists( $file ) ) {
-		require $file;
+		require_once $file;
 	}
 } );
 
-if ( ! function_exists( 'sll' ) ) {
-	/**
-	 * Main plugin instance.
-	 *
-	 * @return \SLL\Plugin
-	 */
-	function sll() {
-		return \SLL\Plugin::instance();
-	}
+// Bootstrap MO from PO when needed (pure-PHP, no gettext binary).
+$install_mo = SLL_DIR . 'languages/install-mo.php';
+if ( file_exists( $install_mo ) ) {
+	require_once $install_mo;
 }
 
-if ( ! function_exists( 'sll_section' ) ) {
-	/**
-	 * Render a lazy section placeholder.
-	 *
-	 * @param string $name Template folder under template-lazy/.
-	 * @param array  $args Optional args passed to render.php.
-	 */
-	function sll_section( string $name, array $args = [] ): void {
-		if ( function_exists( 'sll' ) && sll()->lazy_renderer ) {
-			sll()->lazy_renderer->render_placeholder( $name, $args );
-		}
-	}
+/**
+ * Main plugin bootstrap.
+ *
+ * @return \SLL\Plugin
+ */
+function sll() {
+	return \SLL\Plugin::instance();
 }
 
-add_action( 'init', static function () {
+add_action( 'plugins_loaded', function () {
 	load_plugin_textdomain( 'wpswup', false, dirname( plugin_basename( SLL_FILE ) ) . '/languages' );
-}, 0 );
-
-// Boot only once (prevents recursion / double-load).
-add_action( 'plugins_loaded', static function () {
-	\SLL\Plugin::instance();
+	sll();
 }, 5 );
