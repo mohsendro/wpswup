@@ -1,0 +1,46 @@
+/* template-lazy/features/app.css */
+.sll-features {
+    text-align: center;
+    padding: 3rem 0;
+}
+
+.sll-features__title {
+    font-size: clamp(1.5rem, 3vw, 2.25rem);
+    margin: 0 0 2.5rem;
+}
+
+.sll-features__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    text-align: left;
+}
+
+.sll-feature-card {
+    padding: 1.5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    transition: box-shadow .2s, transform .2s;
+}
+
+.sll-feature-card:hover {
+    box-shadow: 0 4px 20px rgba(0,0,0,.08);
+    transform: translateY(-2px);
+}
+
+.sll-feature-card__icon {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+}
+
+.sll-feature-card__title {
+    font-size: 1.1rem;
+    margin: 0 0 0.5rem;
+}
+
+.sll-feature-card__desc {
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin: 0;
+    line-height: 1.6;
+}
