@@ -1,17 +1,18 @@
 # WP Swup (`wpswup`)
 
-> SPA-like page transitions (Swup 4) + scroll-based lazy section rendering for WordPress.  
+> SPA-like page transitions with [Swup.js 4](https://swup.js.org) for WordPress.  
 > Works with **WooCommerce**, **Elementor**, and **WoodMart** — no theme file edits required.
 
 **Repository:** [mohsendro/wpswup](https://github.com/mohsendro/wpswup)
 
 ## Features
 
-- ⚡ Zero-reload navigation via [Swup.js 4](https://swup.js.org)
-- 📦 Scroll-lazy section rendering with skeleton placeholders
+- ⚡ Zero-reload navigation via Swup.js 4
+- 🎨 Official Swup themes: fade, slide, overlay (+ directions), or none
 - 🔍 **Auto-detect content containers** (WoodMart, Elementor, common WP themes)
 - 🔧 PHP hooks + `window.SLL` JavaScript API
 - 🏗️ Cache plugin headers (WP Rocket, LiteSpeed, …)
+- 🧩 WoodMart overlay / side-panel fix on SPA navigations
 - ⚙️ Settings → **WP Swup**
 
 ## Requirements
@@ -40,34 +41,23 @@ Optional: force full reload on specific links:
 <a href="/cart/" data-no-swup>Cart</a>
 ```
 
-## Lazy sections
-
-```php
-sll_section( 'hero' );
-sll_section( 'features', [ 'limit' => 6 ] );
-```
-
-```html
-<section data-render="hero"></section>
-```
-
-```
-[sll_section name="hero"]
-```
-
-Template folders resolve from:
-
-1. Theme `template-lazy/{name}/`
-2. Plugin `template-lazy/{name}/`
-
 ## Changelog
+
+### 1.3.0
+- Removed Lazy Section Rendering (will ship as a separate plugin later)
+- Plugin focused on Swup SPA transitions only
+
+### 1.2.2
+- Strengthened WoodMart overlay close after theme change / reinit
+- Official Swup theme instantiation in JS
+
+### 1.2.1
+- Full WordPress i18n (pot / po / l10n.php)
+- Official Swup themes selectable in settings
 
 ### 1.1.2
 - Renamed project to **WP Swup** (`wpswup`) — main file `wpswup.php`
-- Guard `sll()` / `sll_section()` with `function_exists` (safe if two copies load)
 - Auto-detect containers (WoodMart / Elementor / common themes)
-- Singleton boot hardened against memory recursion
-- Text domain & admin menu: `wpswup`
 
 ### 1.1.0
 - Swup 4 hooks, Forms/Preload plugins, WooCommerce & Elementor re-init
