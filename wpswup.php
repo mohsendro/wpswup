@@ -77,6 +77,10 @@ if ( ! function_exists( 'sll_section' ) ) {
 }
 
 add_action( 'init', static function () {
+	$install_mo = SLL_DIR . 'languages/install-mo.php';
+	if ( file_exists( $install_mo ) ) {
+		require_once $install_mo;
+	}
 	load_plugin_textdomain( 'wpswup', false, dirname( plugin_basename( SLL_FILE ) ) . '/languages' );
 }, 0 );
 

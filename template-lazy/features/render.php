@@ -9,16 +9,16 @@
 defined( 'ABSPATH' ) || exit;
 
 $args = wp_parse_args( $args ?? [], [
-    'title'    => __( 'Features', 'swup-lazy-loader' ),
+    'title'    => __( 'Features', 'wpswup' ),
     'items'    => [],
 ] );
 
 // Fallback demo items if none provided
 if ( empty( $args['items'] ) ) {
     $args['items'] = [
-        [ 'icon' => '⚡', 'title' => 'Lightning Fast',  'desc' => 'SPA-like transitions with zero page reloads.' ],
-        [ 'icon' => '🎨', 'title' => 'Theme Friendly',  'desc' => 'Works alongside any WordPress theme.' ],
-        [ 'icon' => '🔧', 'title' => 'Extensible API',  'desc' => 'Hooks, filters, and JS events for developers.' ],
+        [ 'icon' => '⚡', 'title' => __( 'Lightning Fast', 'wpswup' ),  'desc' => __( 'SPA-like transitions with zero page reloads.', 'wpswup' ) ],
+        [ 'icon' => '🎨', 'title' => __( 'Theme Friendly', 'wpswup' ),  'desc' => __( 'Works alongside any WordPress theme.', 'wpswup' ) ],
+        [ 'icon' => '🔧', 'title' => __( 'Extensible API', 'wpswup' ),  'desc' => __( 'Hooks, filters, and JS events for developers.', 'wpswup' ) ],
     ];
 }
 ?>
