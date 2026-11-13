@@ -132,13 +132,6 @@ class Assets {
 		}
 
 		wp_enqueue_style(
-			'sll-lazy',
-			$this->asset_url( 'assets/css/sll-lazy.css' ),
-			[],
-			$this->asset_ver( 'assets/css/sll-lazy.css' )
-		);
-
-		wp_enqueue_style(
 			'sll-progress',
 			$this->asset_url( 'assets/css/sll-progress.css' ),
 			[],
@@ -200,54 +193,9 @@ class Assets {
 			'forms'             => (bool) ( $opts['swup_forms'] ?? false ),
 			'animationScope'    => $opts['swup_animation_scope'] ?? 'html',
 			'native'            => (bool) ( $opts['swup_native'] ?? false ),
-			'lazyEnabled'       => (bool) $opts['lazy_enabled'],
-			'lazyThreshold'     => (float) $opts['lazy_threshold'],
-			'lazyRootMargin'    => $opts['lazy_rootMargin'],
-			'ajaxUrl'           => admin_url( 'admin-ajax.php' ),
-			'nonce'             => wp_create_nonce( 'sll_lazy_render' ),
-			'restUrl'           => rest_url( 'sll/v1/render/' ),
-			'restNonce'         => wp_create_nonce( 'wp_rest' ),
 			'debug'             => (bool) $opts['debug_mode'],
 			'compatWoo'         => class_exists( 'WooCommerce' ),
 			'compatElementor'   => defined( 'ELEMENTOR_VERSION' ),
 		] );
-	}
-
-	public function enqueue_section_assets( string $template_name, string $template_path ): void {
-		$js       = $template_path . '/app.js';
-		$css      = $template_path . '/app.css';
-		$url_base = $this->path_to_url( $template_path );
-
-		if ( file_exists( $css ) ) {
-			wp_enqueue_style(
-				"sll-section-{$template_name}",
-				$url_base . '/app.css',
-				[],
-				filemtime( $css )
-			);
-		}
-
-		if ( file_exists( $js ) ) {
-			wp_enqueue_script(
-				"sll-section-{$template_name}",
-				$url_base . '/app.js',
-				[ 'sll-main' ],
-				filemtime( $js ),
-				true
-			);
-		}
-	}
-
-	private function path_to_url( string $path ): string {
-		$base_path = rtrim( SLL_TEMPLATE_LAZY_PATH, '/' );
-		$base_url  = rtrim( SLL_TEMPLATE_LAZY_URL, '/' );
-
-		if ( str_starts_with( $path, $base_path ) ) {
-			return str_replace( $base_path, $base_url, $path );
-		}
-
-		$plugin_base = rtrim( SLL_DIR . 'template-lazy', '/' );
-		$plugin_url  = rtrim( SLL_URL . 'template-lazy', '/' );
-		return str_replace( $plugin_base, $plugin_url, $path );
 	}
 }
