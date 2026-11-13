@@ -1,0 +1,20 @@
+/* WP Swup progress bar */
+.swup-progress-bar {
+	position: fixed;
+	top: 0;
+	left: 0;
+	z-index: 99999;
+	height: 3px;
+	width: 0;
+	background: linear-gradient(90deg, #2563eb, #7c3aed);
+	box-shadow: 0 0 8px rgba(37, 99, 235, 0.45);
+	pointer-events: none;
+}
+html.admin-bar .swup-progress-bar {
+	top: 32px;
+}
+@media (max-width: 782px) {
+	html.admin-bar .swup-progress-bar {
+		top: 46px;
+	}
+}
