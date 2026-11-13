@@ -22,9 +22,6 @@ final class Plugin {
 	/** @var Swup|null */
 	public ?Swup $swup = null;
 
-	/** @var Lazy_Renderer|null */
-	public ?Lazy_Renderer $lazy = null;
-
 	/** @var Settings|null */
 	public ?Settings $settings = null;
 
@@ -48,34 +45,11 @@ final class Plugin {
 		}
 		$booting = true;
 
-		$this->define_template_path();
 		$this->load_textdomain();
 		$this->init_components();
 
 		$booting = false;
 		do_action( 'sll_loaded', $this );
-	}
-
-	/**
-	 * Allow theme / wp-config.php to override the template-lazy base path.
-	 *
-	 *   define( 'SLL_TEMPLATE_LAZY_PATH', get_stylesheet_directory() . '/my-lazy' );
-	 */
-	private function define_template_path(): void {
-		if ( ! defined( 'SLL_TEMPLATE_LAZY_PATH' ) ) {
-			// get_stylesheet_directory() is safe after plugins_loaded / after_setup_theme.
-			// On very early calls fall back to plugin path.
-			$theme_path = function_exists( 'get_stylesheet_directory' )
-				? get_stylesheet_directory() . '/template-lazy'
-				: SLL_DIR . 'template-lazy';
-			define( 'SLL_TEMPLATE_LAZY_PATH', $theme_path );
-		}
-		if ( ! defined( 'SLL_TEMPLATE_LAZY_URL' ) ) {
-			$theme_url = function_exists( 'get_stylesheet_directory_uri' )
-				? get_stylesheet_directory_uri() . '/template-lazy'
-				: SLL_URL . 'template-lazy';
-			define( 'SLL_TEMPLATE_LAZY_URL', $theme_url );
-		}
 	}
 
 	private function load_textdomain(): void {
@@ -93,7 +67,6 @@ final class Plugin {
 		$this->settings = new Settings();
 		$this->assets   = new Assets();
 		$this->swup     = new Swup();
-		$this->lazy     = new Lazy_Renderer();
 
 		if ( is_admin() ) {
 			new Admin\Settings_Page();
