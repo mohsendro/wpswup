@@ -1,0 +1,1 @@
+.swup-progress-bar{height:3px!important;z-index:99999!important;background:linear-gradient(90deg,#2563eb,#7c3aed)!important;box-shadow:0 0 10px rgba(37,99,235,.4);pointer-events:none}html.admin-bar .swup-progress-bar{top:32px!important}@media screen and (max-width:782px){html.admin-bar .swup-progress-bar{top:46px!important}}

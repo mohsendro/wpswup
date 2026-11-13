@@ -6,10 +6,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Class Swup
  *
- * Server-side helpers for Swup 4 SPA transitions:
- *  - Animation CSS (compatible with Swup 4 class names)
- *  - Cache-aware headers for caching plugins
- *  - Elementor + WooCommerce compatibility hooks
+ * Server-side helpers for Swup 4 SPA transitions.
  *
  * @package SLL
  */
@@ -26,6 +23,8 @@ class Swup {
 		if ( $this->is_swup_enabled() ) {
 			$classes[] = 'swup-enabled';
 			$classes[] = 'sll-swup';
+			$anim = (string) $this->opt( 'swup_animation', 'fade' );
+			$classes[] = 'sll-theme-' . sanitize_html_class( $anim );
 		}
 		return $classes;
 	}
@@ -35,44 +34,28 @@ class Swup {
 			return;
 		}
 
-		$animation = $this->opt( 'swup_animation', 'fade' );
-		$duration  = (int) $this->opt( 'swup_duration', 300 );
-		$scope     = $this->opt( 'swup_animation_scope', 'html' );
+		$animation = (string) $this->opt( 'swup_animation', 'fade' );
+		$duration  = (int) $this->opt( 'swup_duration', 400 );
+		$sec       = max( 0.05, $duration / 1000 );
 
 		echo '<style id="sll-swup-anim">';
 		echo ':root{--sll-duration:' . esc_attr( (string) $duration ) . 'ms}';
-		echo '.transition-swup{transition-property:opacity,transform;transition-duration:var(--sll-duration);transition-timing-function:ease}';
+		echo 'body{';
+		echo '--swup-fade-theme-duration:' . esc_attr( (string) $sec ) . 's;';
+		echo '--swup-slide-theme-duration-fade:' . esc_attr( (string) $sec ) . 's;';
+		echo '--swup-slide-theme-duration-slide:' . esc_attr( (string) ( $sec * 1.15 ) ) . 's;';
+		echo '--swup-overlay-theme-duration:' . esc_attr( (string) max( 0.35, $sec * 1.2 ) ) . 's;';
+		echo '}';
 
 		if ( $animation === 'none' ) {
-			echo '</style>';
-			do_action( 'sll_after_animation_styles', $animation, $duration );
-			return;
-		}
-
-		$prefix = ( $scope === 'containers' ) ? '.transition-swup' : 'html';
-
-		switch ( $animation ) {
-			case 'slide':
-				echo "\n\t\t\t\t{$prefix}.is-changing .transition-swup{transition-property:opacity,transform}\n\t\t\t\t{$prefix}.is-animating.is-leaving .transition-swup{opacity:0;transform:translateY(-12px)}\n\t\t\t\t{$prefix}.is-animating.is-rendering .transition-swup{opacity:0;transform:translateY(12px)}\n\t\t\t\t";
-				break;
-
-			default:
-				echo "\n\t\t\t\t{$prefix}.is-changing .transition-swup{transition-property:opacity}\n\t\t\t\t{$prefix}.is-animating.is-leaving .transition-swup{opacity:0}\n\t\t\t\t{$prefix}.is-animating.is-rendering .transition-swup{opacity:0}\n\t\t\t\t";
-				break;
+			echo '.transition-swup{transition:none!important}';
+			echo 'html.is-changing .transition-swup,html.is-animating .transition-swup{opacity:1!important;transform:none!important}';
 		}
 
 		echo '</style>';
 		do_action( 'sll_after_animation_styles', $animation, $duration );
 	}
 
-	/**
-	 * Cache / optimizer compatibility for Swup XHR navigations.
-	 *
-	 * - Vary so full-page caches (WP Rocket, LiteSpeed, Cloudflare, etc.) store
-	 *   a separate variant for Swup requests vs full browser loads.
-	 * - Personalized sessions (logged-in / Woo cart) never get a public cache.
-	 * - Public pages stay cacheable so CDN + optimizers accelerate SPA fetches.
-	 */
 	public function maybe_add_cache_headers(): void {
 		if ( ! $this->opt( 'compat_cache_plugins', true ) ) {
 			return;
@@ -87,7 +70,6 @@ class Swup {
 			return;
 		}
 
-		// Tell caches this response differs by request type.
 		header( 'Vary: X-Requested-With, Accept-Encoding', false );
 
 		$bypass = is_user_logged_in();
@@ -107,13 +89,11 @@ class Swup {
 		}
 
 		if ( $bypass ) {
-			// Bypass common full-page caches for private sessions.
 			header( 'X-Rocket-No-Cache: 1' );
 			header( 'X-LiteSpeed-Cache-Control: no-cache' );
 			header( 'Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0' );
 			header( 'Pragma: no-cache' );
 		} else {
-			// Public pages: short browser cache + longer shared/CDN cache.
 			header( 'Cache-Control: public, max-age=300, s-maxage=600, stale-while-revalidate=60' );
 		}
 
