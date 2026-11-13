@@ -6,25 +6,37 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Class Settings
  *
- * Manages plugin options with sane defaults for Swup 4.
+ * Single serialized option row: sll_options (max 1 wp_options row for settings).
  *
  * @package SLL
  */
 class Settings {
 
+	/** Only option key used by this plugin for settings. */
 	const OPTION_KEY = 'sll_options';
+
+	/** Allowed official + built-in animation themes. */
+	const THEMES = [
+		'none',
+		'fade',
+		'slide',
+		'slide_reversed',
+		'overlay',
+		'overlay_left',
+		'overlay_top',
+		'overlay_bottom',
+	];
 
 	/** @var array<string,mixed> */
 	private array $options;
 
 	/** @var array<string,mixed> */
 	private array $defaults = [
-		// Swup core
 		'swup_enabled'          => true,
+		// Official Swup themes: fade | slide | slide_reversed | overlay* | none
 		'swup_animation'        => 'fade',
-		'swup_duration'         => 300,
+		'swup_duration'         => 400,
 		'swup_cache'            => true,
-		// Empty = auto-detect (recommended for ready-made themes)
 		'swup_containers'       => '',
 		'swup_link_selector'    => 'a[href]:not([data-no-swup]):not([target="_blank"]):not([href^="#"]):not([href^="mailto:"]):not([href^="tel:"])',
 		'swup_scroll_reset'     => true,
@@ -33,17 +45,11 @@ class Settings {
 		'swup_forms'            => true,
 		'swup_animation_scope'  => 'html',
 		'swup_native'           => false,
-
-		// Lazy Renderer
 		'lazy_enabled'          => true,
 		'lazy_threshold'        => 0.1,
 		'lazy_rootMargin'       => '0px 0px 200px 0px',
-
-		// Compatibility
 		'compat_cache_plugins'  => true,
 		'compat_page_builders'  => true,
-
-		// Developer
 		'debug_mode'            => false,
 	];
 
@@ -61,7 +67,8 @@ class Settings {
 	}
 
 	public function save(): bool {
-		return update_option( self::OPTION_KEY, $this->options );
+		// One serialized row only.
+		return update_option( self::OPTION_KEY, $this->options, true );
 	}
 
 	public function all(): array {
@@ -70,5 +77,11 @@ class Settings {
 
 	public function defaults(): array {
 		return $this->defaults;
+	}
+
+	/** Whether the selected animation uses an official Swup theme package. */
+	public function uses_official_theme(): bool {
+		$a = (string) $this->get( 'swup_animation', 'fade' );
+		return in_array( $a, [ 'fade', 'slide', 'slide_reversed', 'overlay', 'overlay_left', 'overlay_top', 'overlay_bottom' ], true );
 	}
 }
