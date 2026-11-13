@@ -30,7 +30,10 @@ class Settings_Page {
 		if ( 'settings_page_wpswup' !== $hook ) {
 			return;
 		}
-		wp_enqueue_style( 'sll-admin', \SLL_URL . 'assets/css/sll-admin.css', [], \SLL_VERSION );
+		$admin_css = file_exists( \SLL_DIR . 'assets/css/sll-admin.min.css' )
+			? \SLL_URL . 'assets/css/sll-admin.min.css'
+			: \SLL_URL . 'assets/css/sll-admin.css';
+		wp_enqueue_style( 'sll-admin', $admin_css, [], \SLL_VERSION );
 	}
 
 	public function register_settings(): void {
@@ -46,7 +49,8 @@ class Settings_Page {
 		$clean    = [];
 
 		$clean['swup_enabled']         = ! empty( $input['swup_enabled'] );
-		$clean['swup_animation']       = in_array( $input['swup_animation'] ?? '', [ 'fade', 'slide', 'none' ], true )
+		$allowed_anim = \SLL\Settings::THEMES;
+		$clean['swup_animation']       = in_array( $input['swup_animation'] ?? '', $allowed_anim, true )
 			? $input['swup_animation'] : $defaults['swup_animation'];
 		$clean['swup_duration']        = absint( $input['swup_duration'] ?? $defaults['swup_duration'] );
 		$clean['swup_cache']           = ! empty( $input['swup_cache'] );
@@ -116,13 +120,26 @@ class Settings_Page {
 									</td>
 								</tr>
 								<tr>
-									<th><?php esc_html_e( 'Animation Style', 'wpswup' ); ?></th>
+									<th><?php esc_html_e( 'Animation Theme', 'wpswup' ); ?></th>
 									<td>
 										<select name="sll_options[swup_animation]" class="sll-select">
-											<?php foreach ( [ 'fade' => __( 'Fade', 'wpswup' ), 'slide' => __( 'Slide', 'wpswup' ), 'none' => __( 'None', 'wpswup' ) ] as $val => $label ) : ?>
+											<?php
+											$themes = [
+												'fade'            => __( 'Fade (official)', 'wpswup' ),
+												'slide'           => __( 'Slide (official)', 'wpswup' ),
+												'slide_reversed'  => __( 'Slide reversed', 'wpswup' ),
+												'overlay'         => __( 'Overlay → right', 'wpswup' ),
+												'overlay_left'    => __( 'Overlay → left', 'wpswup' ),
+												'overlay_top'     => __( 'Overlay → top', 'wpswup' ),
+												'overlay_bottom'  => __( 'Overlay → bottom', 'wpswup' ),
+												'none'            => __( 'None', 'wpswup' ),
+											];
+											foreach ( $themes as $val => $label ) :
+												?>
 												<option value="<?php echo esc_attr( $val ); ?>" <?php selected( $opts['swup_animation'], $val ); ?>><?php echo esc_html( $label ); ?></option>
 											<?php endforeach; ?>
 										</select>
+										<p class="description"><?php esc_html_e( 'Official Swup themes: Fade, Slide, Overlay. See swup.js.org/themes', 'wpswup' ); ?></p>
 									</td>
 								</tr>
 								<tr>
