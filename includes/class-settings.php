@@ -1,19 +1,19 @@
 <?php
-namespace SLL;
+namespace Wpswup;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Class Settings
  *
- * Single serialized option row: sll_options (max 1 wp_options row for settings).
+ * Single serialized option row: wpswup_options (max 1 wp_options row for settings).
  *
- * @package SLL
+ * @package Wpswup
  */
 class Settings {
 
 	/** Only option key used by this plugin for settings. */
-	const OPTION_KEY = 'sll_options';
+	const OPTION_KEY = 'wpswup_options';
 
 	/** Allowed official + built-in animation themes. */
 	const THEMES = [
@@ -51,7 +51,16 @@ class Settings {
 	];
 
 	public function __construct() {
-		$saved         = get_option( self::OPTION_KEY, [] );
+		$saved = get_option( self::OPTION_KEY, null );
+		// Migrate legacy option key from pre-1.4.0 (sll_options).
+		if ( null === $saved || [] === $saved ) {
+			$legacy = get_option( 'sll_options', null );
+			if ( is_array( $legacy ) && $legacy ) {
+				$saved = $legacy;
+				update_option( self::OPTION_KEY, $legacy, true );
+				delete_option( 'sll_options' );
+			}
+		}
 		$this->options = wp_parse_args( is_array( $saved ) ? $saved : [], $this->defaults );
 	}
 

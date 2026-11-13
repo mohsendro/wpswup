@@ -1,5 +1,5 @@
 <?php
-namespace SLL;
+namespace Wpswup;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -7,9 +7,9 @@ defined( 'ABSPATH' ) || exit;
  * Class Plugin
  *
  * Central singleton that boots all sub-systems.
- * Developers can hook into 'sll_loaded' after the plugin is ready.
+ * Developers can hook into 'wpswup_loaded' after the plugin is ready.
  *
- * @package SLL
+ * @package Wpswup
  */
 final class Plugin {
 
@@ -31,7 +31,7 @@ final class Plugin {
 	public static function instance(): self {
 		if ( null === self::$instance ) {
 			// Assign BEFORE running the constructor body so nested
-			// sll() / Plugin::instance() calls do not recurse.
+			// wpswup() / Plugin::instance() calls do not recurse.
 			self::$instance = new self();
 		}
 		return self::$instance;
@@ -49,21 +49,16 @@ final class Plugin {
 		$this->init_components();
 
 		$booting = false;
-		do_action( 'sll_loaded', $this );
+		do_action( 'wpswup_loaded', $this );
 	}
 
 	private function load_textdomain(): void {
-		// Ensure binary .mo exists (written once from embedded base64 if missing).
-		$install = SLL_DIR . 'languages/install-mo.php';
-		if ( is_readable( $install ) ) {
-			require_once $install;
-		}
-		load_plugin_textdomain( SLL_SLUG, false, dirname( plugin_basename( SLL_FILE ) ) . '/languages' );
+		load_plugin_textdomain( WPSWUP_SLUG, false, dirname( plugin_basename( WPSWUP_FILE ) ) . '/languages' );
 	}
 
 	private function init_components(): void {
-		// Order matters: Settings first (no hooks that call sll()),
-		// then the rest which may call sll()->option().
+		// Order matters: Settings first (no hooks that call wpswup()),
+		// then the rest which may call wpswup()->option().
 		$this->settings = new Settings();
 		$this->assets   = new Assets();
 		$this->swup     = new Swup();
