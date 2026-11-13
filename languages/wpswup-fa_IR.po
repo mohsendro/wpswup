@@ -2,10 +2,10 @@
 # This file is distributed under the same license as the WP Swup plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: WP Swup 1.2.0\n"
+"Project-Id-Version: WP Swup 1.2.1\n"
 "Report-Msgid-Bugs-To: https://github.com/mohsendro/wpswup/issues\n"
-"POT-Creation-Date: 2026-11-13 18:06+0000\n"
-"PO-Revision-Date: 2026-11-13 18:08+0000\n"
+"POT-Creation-Date: 2026-11-13 18:16+0000\n"
+"PO-Revision-Date: 2026-11-13 18:16+0000\n"
 "Last-Translator: Mohsen Derogar\n"
 "Language-Team: Persian\n"
 "Language: fa_IR\n"
@@ -15,149 +15,198 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n == 0 || n == 1);\n"
 "X-Domain: wpswup\n"
 
-msgid "Animated Scroll Plugin"
-msgstr "افزونه اسکرول متحرک"
-
-msgid "Animation Scope"
-msgstr "محدوده انیمیشن"
-
-msgid "Animation Theme"
-msgstr "تم انیمیشن"
-
-msgid "Cache Pages"
-msgstr "کش کردن صفحات"
-
-msgid "Cache Plugin Support"
-msgstr "پشتیبانی از افزونه‌های کش"
-
-msgid "Compatibility"
-msgstr "سازگاری"
-
-msgid "Debug Mode"
-msgstr "حالت اشکال‌زدایی"
-
-msgid "Detected Sections"
-msgstr "بخش‌های شناسایی‌شده"
-
-msgid "Duration (ms)"
-msgstr "مدت زمان (میلی‌ثانیه)"
-
-msgid "Elementor, WooCommerce, WoodMart re-init after transitions."
-msgstr "راه‌اندازی مجدد المنتور، ووکامرس و WoodMart پس از هر انتقال."
-
-msgid "Enable Lazy Renderer"
-msgstr "فعال‌سازی رندر تنبل"
-
-msgid "Enable Swup"
-msgstr "فعال‌سازی Swup"
-
-msgid "Extensible API"
-msgstr "API توسعه‌پذیر"
-
-msgid "Fade (official)"
-msgstr "محو شدن (رسمی)"
-
-msgid "Features"
-msgstr "ویژگی‌ها"
-
-msgid "Forms Plugin"
-msgstr "افزونه فرم‌ها"
-
-msgid "Hooks, filters, and JS events for developers."
-msgstr "هوک، فیلتر و رویدادهای جاوااسکریپت برای توسعه‌دهندگان."
-
-msgid "Lazy Renderer"
-msgstr "رندر تنبل"
-
-msgid "Lazy Section Renderer"
-msgstr "رندرر بخش‌های تنبل"
-
-msgid "Leave empty to auto-detect (WoodMart, Elementor, …). Example: #main, .main-page-wrapper"
-msgstr "برای تشخیص خودکار خالی بگذارید (WoodMart، المنتور و …). مثال: #main, .main-page-wrapper"
-
-msgid "Lightning Fast"
-msgstr "سرعت بالا"
-
-msgid "Link Selector"
-msgstr "انتخاب‌گر لینک"
-
-msgid "Native View Transitions"
-msgstr "انتقال‌های بومی View Transitions"
-
-msgid "No template-lazy sections found yet."
-msgstr "هنوز بخش template-lazy پیدا نشده است."
-
-msgid "None"
-msgstr "بدون انیمیشن"
-
-msgid "Observer Threshold"
-msgstr "آستانه Observer"
-
-msgid "Official Swup themes: Fade, Slide, Overlay. See swup.js.org/themes"
-msgstr "تم‌های رسمی Swup: محو شدن، اسلاید، اورلی. مستندات: swup.js.org/themes"
-
-msgid "Overlay → bottom"
-msgstr "اورلی به پایین"
-
-msgid "Overlay → left"
-msgstr "اورلی به چپ"
-
-msgid "Overlay → right"
-msgstr "اورلی به راست"
-
-msgid "Overlay → top"
-msgstr "اورلی به بالا"
-
-msgid "Page Builder Support"
-msgstr "پشتیبانی از صفحه‌سازها"
-
-msgid "Page Transition Settings"
-msgstr "تنظیمات انتقال صفحه"
-
-msgid "Preload on Hover"
-msgstr "پیش‌بارگذاری با هاور"
-
-msgid "Read the Blog"
-msgstr "مطالعه وبلاگ"
-
-msgid "Reset Scroll"
-msgstr "بازنشانی اسکرول"
-
-msgid "Root Margin"
-msgstr "حاشیه ریشه (Root Margin)"
-
-msgid "SPA transitions + scroll-based lazy section rendering"
-msgstr "انتقال‌های شبیه SPA همراه با رندر تنبل بخش‌ها بر اساس اسکرول"
-
-msgid "SPA-like transitions with zero page reloads."
-msgstr "انتقال‌های شبیه SPA بدون بارگذاری مجدد صفحه."
-
-msgid "Save Settings"
-msgstr "ذخیره تنظیمات"
-
-msgid "Sections & Info"
-msgstr "بخش‌ها و اطلاعات"
-
-msgid "Slide (official)"
-msgstr "اسلاید (رسمی)"
-
-msgid "Slide reversed"
-msgstr "اسلاید معکوس"
-
-msgid "Swap Containers"
-msgstr "کانتینرهای تعویض"
-
-msgid "Swup / SPA"
-msgstr "Swup / SPA"
-
-msgid "Theme Friendly"
-msgstr "سازگار با قالب"
-
-msgid "Version"
-msgstr "نسخه"
-
+#: includes/admin/class-settings-page.php:21
 msgid "WP Swup"
 msgstr "WP Swup"
 
+#: includes/admin/class-settings-page.php:94
+msgid "SPA transitions + scroll-based lazy section rendering"
+msgstr "انتقال‌های شبیه SPA همراه با رندر تنبل بخش‌ها بر اساس اسکرول"
+
+#: includes/admin/class-settings-page.php:103
+msgid "Swup / SPA"
+msgstr "Swup / SPA"
+
+#: includes/admin/class-settings-page.php:104
+msgid "Lazy Renderer"
+msgstr "رندرر تنبل"
+
+#: includes/admin/class-settings-page.php:105
+msgid "Compatibility"
+msgstr "سازگاری"
+
+#: includes/admin/class-settings-page.php:106
+msgid "Sections & Info"
+msgstr "بخش‌ها و اطلاعات"
+
+#: includes/admin/class-settings-page.php:111
+msgid "Page Transition Settings"
+msgstr "تنظیمات انتقال صفحه"
+
+#: includes/admin/class-settings-page.php:114
+msgid "Enable Swup"
+msgstr "فعال‌سازی Swup"
+
+#: includes/admin/class-settings-page.php:123
+msgid "Animation Theme"
+msgstr "تم انیمیشن"
+
+#: includes/admin/class-settings-page.php:128
+msgid "Fade (official)"
+msgstr "محو شدن (رسمی)"
+
+#: includes/admin/class-settings-page.php:129
+msgid "Slide (official)"
+msgstr "اسلاید (رسمی)"
+
+#: includes/admin/class-settings-page.php:130
+msgid "Slide reversed"
+msgstr "اسلاید معکوس"
+
+#: includes/admin/class-settings-page.php:131
+msgid "Overlay → right"
+msgstr "اورلی → راست"
+
+#: includes/admin/class-settings-page.php:132
+msgid "Overlay → left"
+msgstr "اورلی → چپ"
+
+#: includes/admin/class-settings-page.php:133
+msgid "Overlay → top"
+msgstr "اورلی → بالا"
+
+#: includes/admin/class-settings-page.php:134
+msgid "Overlay → bottom"
+msgstr "اورلی → پایین"
+
+#: includes/admin/class-settings-page.php:135
+msgid "None"
+msgstr "بدون انیمیشن"
+
+#: includes/admin/class-settings-page.php:142
+msgid "Official Swup themes: Fade, Slide, Overlay. See swup.js.org/themes"
+msgstr "تم‌های رسمی Swup: محو شدن، اسلاید، اورلی. مستندات: swup.js.org/themes"
+
+#: includes/admin/class-settings-page.php:146
+msgid "Duration (ms)"
+msgstr "مدت زمان (میلی‌ثانیه)"
+
+#: includes/admin/class-settings-page.php:150
+msgid "Cache Pages"
+msgstr "کش صفحات"
+
+#: includes/admin/class-settings-page.php:159
+msgid "Swap Containers"
+msgstr "کانتینرهای تعویض"
+
+#: includes/admin/class-settings-page.php:162
+msgid "Leave empty to auto-detect (WoodMart, Elementor, …). Example: #main, .main-page-wrapper"
+msgstr "برای تشخیص خودکار خالی بگذارید (WoodMart، المنتور و …). مثال: #main, .main-page-wrapper"
+
+#: includes/admin/class-settings-page.php:166
+msgid "Link Selector"
+msgstr "انتخاب‌گر لینک"
+
+#: includes/admin/class-settings-page.php:170
+msgid "Reset Scroll"
+msgstr "بازنشانی اسکرول"
+
+#: includes/admin/class-settings-page.php:179
+msgid "Animated Scroll Plugin"
+msgstr "افزونه اسکرول متحرک"
+
+#: includes/admin/class-settings-page.php:188
+msgid "Preload on Hover"
+msgstr "پیش‌بارگذاری با هاور"
+
+#: includes/admin/class-settings-page.php:197
+msgid "Forms Plugin"
+msgstr "افزونه فرم‌ها"
+
+#: includes/admin/class-settings-page.php:206
+msgid "Animation Scope"
+msgstr "محدوده انیمیشن"
+
+#: includes/admin/class-settings-page.php:215
+msgid "Native View Transitions"
+msgstr "انتقال‌های بومی View Transitions"
+
+#: includes/admin/class-settings-page.php:229
+msgid "Lazy Section Renderer"
+msgstr "رندرر بخش‌های تنبل"
+
+#: includes/admin/class-settings-page.php:232
+msgid "Enable Lazy Renderer"
+msgstr "فعال‌سازی رندرر تنبل"
+
+#: includes/admin/class-settings-page.php:241
+msgid "Observer Threshold"
+msgstr "آستانه Observer"
+
+#: includes/admin/class-settings-page.php:245
+msgid "Root Margin"
+msgstr "حاشیه ریشه (Root Margin)"
+
+#: includes/admin/class-settings-page.php:257
+msgid "Cache Plugin Support"
+msgstr "پشتیبانی از افزونه‌های کش"
+
+#: includes/admin/class-settings-page.php:266
+msgid "Page Builder Support"
+msgstr "پشتیبانی از صفحه‌سازها"
+
+#: includes/admin/class-settings-page.php:272
+msgid "Elementor, WooCommerce, WoodMart re-init after transitions."
+msgstr "راه‌اندازی مجدد المنتور، ووکامرس و WoodMart پس از هر انتقال."
+
+#: includes/admin/class-settings-page.php:276
+msgid "Debug Mode"
+msgstr "حالت اشکال‌زدایی"
+
+#: includes/admin/class-settings-page.php:290
+msgid "Detected Sections"
+msgstr "بخش‌های شناسایی‌شده"
+
+#: includes/admin/class-settings-page.php:292
+msgid "No template-lazy sections found yet."
+msgstr "هنوز بخش template-lazy پیدا نشده است."
+
+#: includes/admin/class-settings-page.php:300
+msgid "Version"
+msgstr "نسخه"
+
+#: includes/admin/class-settings-page.php:305
+msgid "Save Settings"
+msgstr "ذخیره تنظیمات"
+
+#: template-lazy/features/render.php:12
+msgid "Features"
+msgstr "ویژگی‌ها"
+
+#: template-lazy/features/render.php:19
+msgid "Lightning Fast"
+msgstr "سرعت بسیار بالا"
+
+#: template-lazy/features/render.php:19
+msgid "SPA-like transitions with zero page reloads."
+msgstr "انتقال‌های شبیه SPA بدون بارگذاری مجدد صفحه."
+
+#: template-lazy/features/render.php:20
+msgid "Theme Friendly"
+msgstr "سازگار با قالب"
+
+#: template-lazy/features/render.php:20
 msgid "Works alongside any WordPress theme."
 msgstr "با هر قالب وردپرس کار می‌کند."
+
+#: template-lazy/features/render.php:21
+msgid "Extensible API"
+msgstr "API توسعه‌پذیر"
+
+#: template-lazy/features/render.php:21
+msgid "Hooks, filters, and JS events for developers."
+msgstr "هوک‌ها، فیلترها و رویدادهای جاوااسکریپت برای توسعه‌دهندگان."
+
+#: template-lazy/hero/render.php:25
+msgid "Read the Blog"
+msgstr "مطالعه وبلاگ"
