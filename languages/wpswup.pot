@@ -1,0 +1,212 @@
+# Copyright (C) 2026 Mohsen Derogar
+# This file is distributed under the same license as the WP Swup plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: WP Swup 1.2.0\n"
+"Report-Msgid-Bugs-To: https://github.com/mohsendro/wpswup/issues\n"
+"POT-Creation-Date: 2026-11-13 18:06+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"X-Domain: wpswup\n"
+
+#: includes/admin/class-settings-page.php:178
+msgid "Animated Scroll Plugin"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:205
+msgid "Animation Scope"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:123
+msgid "Animation Theme"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:149
+msgid "Cache Pages"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:256
+msgid "Cache Plugin Support"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:105
+msgid "Compatibility"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:275
+msgid "Debug Mode"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:289
+msgid "Detected Sections"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:145
+msgid "Duration (ms)"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:271
+msgid "Elementor, WooCommerce, WoodMart re-init after transitions."
+msgstr ""
+
+#: includes/admin/class-settings-page.php:231
+msgid "Enable Lazy Renderer"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:114
+msgid "Enable Swup"
+msgstr ""
+
+#: template-lazy/features/render.php:22
+msgid "Extensible API"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:128
+msgid "Fade (official)"
+msgstr ""
+
+#: template-lazy/features/render.php:12
+msgid "Features"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:196
+msgid "Forms Plugin"
+msgstr ""
+
+#: template-lazy/features/render.php:22
+msgid "Hooks, filters, and JS events for developers."
+msgstr ""
+
+#: includes/admin/class-settings-page.php:104
+msgid "Lazy Renderer"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:228
+msgid "Lazy Section Renderer"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:161
+msgid "Leave empty to auto-detect (WoodMart, Elementor, …). Example: #main, .main-page-wrapper"
+msgstr ""
+
+#: template-lazy/features/render.php:20
+msgid "Lightning Fast"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:165
+msgid "Link Selector"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:214
+msgid "Native View Transitions"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:291
+msgid "No template-lazy sections found yet."
+msgstr ""
+
+#: includes/admin/class-settings-page.php:135
+msgid "None"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:240
+msgid "Observer Threshold"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:141
+msgid "Official Swup themes: Fade, Slide, Overlay. See swup.js.org/themes"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:134
+msgid "Overlay → bottom"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:132
+msgid "Overlay → left"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:131
+msgid "Overlay → right"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:133
+msgid "Overlay → top"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:265
+msgid "Page Builder Support"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:111
+msgid "Page Transition Settings"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:187
+msgid "Preload on Hover"
+msgstr ""
+
+#: template-lazy/hero/render.php:38
+msgid "Read the Blog"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:169
+msgid "Reset Scroll"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:244
+msgid "Root Margin"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:94
+msgid "SPA transitions + scroll-based lazy section rendering"
+msgstr ""
+
+#: template-lazy/features/render.php:20
+msgid "SPA-like transitions with zero page reloads."
+msgstr ""
+
+#: includes/admin/class-settings-page.php:304
+msgid "Save Settings"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:106
+msgid "Sections & Info"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:129
+msgid "Slide (official)"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:130
+msgid "Slide reversed"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:158
+msgid "Swap Containers"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:103
+msgid "Swup / SPA"
+msgstr ""
+
+#: template-lazy/features/render.php:21
+msgid "Theme Friendly"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:299
+msgid "Version"
+msgstr ""
+
+#: includes/admin/class-settings-page.php:21
+msgid "WP Swup"
+msgstr ""
+
+#: template-lazy/features/render.php:21
+msgid "Works alongside any WordPress theme."
+msgstr ""
