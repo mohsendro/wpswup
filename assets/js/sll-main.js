@@ -245,9 +245,10 @@
 				plugins.push(
 					new SwupProgressPlugin( {
 						className: 'swup-progress-bar',
-						transition: 280,
-						delay: 80,
-						initialValue: 0.18,
+						transition: 300,
+						delay: 0,
+						initialValue: 0.2,
+						minValue: 0.1,
 						finishAnimation: true,
 					} )
 				);
