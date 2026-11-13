@@ -1,5 +1,5 @@
 <?php
-namespace SLL;
+namespace Wpswup;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -8,7 +8,7 @@ defined( 'ABSPATH' ) || exit;
  *
  * Enqueues Swup 4 + official themes/plugins and minified plugin assets.
  *
- * @package SLL
+ * @package Wpswup
  */
 class Assets {
 
@@ -28,17 +28,17 @@ class Assets {
 
 	private function asset_url( string $relative ): string {
 		$min = preg_replace( '/\.(js|css)$/', '.min.$1', $relative );
-		$path_min = SLL_DIR . $min;
+		$path_min = WPSWUP_DIR . $min;
 		if ( file_exists( $path_min ) ) {
-			return SLL_URL . $min;
+			return WPSWUP_URL . $min;
 		}
-		return SLL_URL . $relative;
+		return WPSWUP_URL . $relative;
 	}
 
 	private function asset_ver( string $relative ): string {
 		$min  = preg_replace( '/\.(js|css)$/', '.min.$1', $relative );
-		$path = file_exists( SLL_DIR . $min ) ? SLL_DIR . $min : SLL_DIR . $relative;
-		return file_exists( $path ) ? (string) filemtime( $path ) : SLL_VERSION;
+		$path = file_exists( WPSWUP_DIR . $min ) ? WPSWUP_DIR . $min : WPSWUP_DIR . $relative;
+		return file_exists( $path ) ? (string) filemtime( $path ) : WPSWUP_VERSION;
 	}
 
 	public function enqueue_frontend(): void {
@@ -46,7 +46,7 @@ class Assets {
 			return;
 		}
 
-		$opts = sll()->settings->all();
+		$opts = wpswup()->settings->all();
 		$anim = (string) ( $opts['swup_animation'] ?? 'fade' );
 
 		if ( ! empty( $opts['swup_enabled'] ) ) {
@@ -132,54 +132,54 @@ class Assets {
 		}
 
 		wp_enqueue_style(
-			'sll-progress',
-			$this->asset_url( 'assets/css/sll-progress.css' ),
+			'wpswup-progress',
+			$this->asset_url( 'assets/css/wpswup-progress.css' ),
 			[],
-			$this->asset_ver( 'assets/css/sll-progress.css' )
+			$this->asset_ver( 'assets/css/wpswup-progress.css' )
 		);
 
 		$deps = ! empty( $opts['swup_enabled'] ) ? [ 'swup' ] : [];
 		wp_enqueue_script(
-			'sll-main',
-			$this->asset_url( 'assets/js/sll-main.js' ),
+			'wpswup-main',
+			$this->asset_url( 'assets/js/wpswup-main.js' ),
 			$deps,
-			$this->asset_ver( 'assets/js/sll-main.js' ),
+			$this->asset_ver( 'assets/js/wpswup-main.js' ),
 			true
 		);
 
 		wp_enqueue_script(
-			'sll-woodmart-fix',
-			$this->asset_url( 'assets/js/sll-woodmart-fix.js' ),
-			[ 'sll-main' ],
-			$this->asset_ver( 'assets/js/sll-woodmart-fix.js' ),
+			'wpswup-woodmart-fix',
+			$this->asset_url( 'assets/js/wpswup-woodmart-fix.js' ),
+			[ 'wpswup-main' ],
+			$this->asset_ver( 'assets/js/wpswup-woodmart-fix.js' ),
 			true
 		);
 
 		wp_enqueue_script(
-			'sll-compat',
-			$this->asset_url( 'assets/js/sll-compat.js' ),
-			[ 'sll-main' ],
-			$this->asset_ver( 'assets/js/sll-compat.js' ),
+			'wpswup-compat',
+			$this->asset_url( 'assets/js/wpswup-compat.js' ),
+			[ 'wpswup-main' ],
+			$this->asset_ver( 'assets/js/wpswup-compat.js' ),
 			true
 		);
 
 		if ( defined( 'ELEMENTOR_VERSION' ) ) {
 			wp_enqueue_script(
-				'sll-elementor',
-				$this->asset_url( 'assets/js/sll-elementor.js' ),
-				[ 'sll-main' ],
-				$this->asset_ver( 'assets/js/sll-elementor.js' ),
+				'wpswup-elementor',
+				$this->asset_url( 'assets/js/wpswup-elementor.js' ),
+				[ 'wpswup-main' ],
+				$this->asset_ver( 'assets/js/wpswup-elementor.js' ),
 				true
 			);
 		}
 
-		wp_localize_script( 'sll-main', 'sllConfig', $this->js_config() );
+		wp_localize_script( 'wpswup-main', 'wpswupConfig', $this->js_config() );
 	}
 
 	private function js_config(): array {
-		$opts = sll()->settings->all();
+		$opts = wpswup()->settings->all();
 
-		return apply_filters( 'sll_js_config', [
+		return apply_filters( 'wpswup_js_config', [
 			'swupEnabled'       => (bool) $opts['swup_enabled'],
 			'animation'         => $opts['swup_animation'],
 			'duration'          => (int) $opts['swup_duration'],
