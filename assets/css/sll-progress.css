@@ -1,4 +1,4 @@
-/* WP Swup progress bar */
+/* WP Swup – browser progress bar (ProgressPlugin) */
 .swup-progress-bar {
 	position: fixed;
 	top: 0;
@@ -6,10 +6,24 @@
 	z-index: 99999;
 	height: 3px;
 	width: 0;
-	background: linear-gradient(90deg, #2563eb, #7c3aed);
-	box-shadow: 0 0 8px rgba(37, 99, 235, 0.45);
+	background: linear-gradient(90deg, #2563eb 0%, #7c3aed 50%, #db2777 100%);
+	background-size: 200% 100%;
+	box-shadow: 0 0 10px rgba(37, 99, 235, 0.5), 0 0 4px rgba(124, 58, 237, 0.35);
 	pointer-events: none;
+	transition: width 0.28s ease, opacity 0.2s ease;
 }
+
+/* Subtle pulse while loading */
+html.is-changing .swup-progress-bar {
+	animation: sll-progress-shimmer 1.2s linear infinite;
+}
+
+@keyframes sll-progress-shimmer {
+	0% { background-position: 100% 0; }
+	100% { background-position: -100% 0; }
+}
+
+/* Admin bar offset */
 html.admin-bar .swup-progress-bar {
 	top: 32px;
 }

@@ -3,7 +3,7 @@
  * Plugin Name: WP Swup
  * Plugin URI:  https://github.com/mohsendro/wpswup
  * Description: SPA-like page transitions with Swup.js 4 + scroll-based lazy section rendering for WordPress. Compatible with WooCommerce, Elementor, and WoodMart.
- * Version:     1.1.6
+ * Version:     1.1.7
  * Author:      Mohsen Derogar
  * Author URI:  https://github.com/mohsendro
  * License:     GPL-2.0+
@@ -16,7 +16,7 @@
 defined( 'ABSPATH' ) || exit;
 
 if ( ! defined( 'SLL_VERSION' ) ) {
-	define( 'SLL_VERSION', '1.1.6' );
+	define( 'SLL_VERSION', '1.1.7' );
 }
 if ( ! defined( 'SLL_FILE' ) ) {
 	define( 'SLL_FILE', __FILE__ );
@@ -51,18 +51,32 @@ spl_autoload_register( function ( $class ) {
 	}
 } );
 
-add_action( 'plugins_loaded', function () {
-	\SLL\Plugin::instance();
-} );
-
 if ( ! function_exists( 'sll' ) ) {
+	/**
+	 * Main plugin instance.
+	 *
+	 * @return \SLL\Plugin
+	 */
 	function sll() {
 		return \SLL\Plugin::instance();
 	}
 }
 
 if ( ! function_exists( 'sll_section' ) ) {
-	function sll_section( string $name, array $args = [], string $tag = 'section', string $class = '' ): void {
-		sll()->lazy->render_placeholder( $name, $args, $tag, $class );
+	/**
+	 * Render a lazy section placeholder.
+	 *
+	 * @param string $name Template folder under template-lazy/.
+	 * @param array  $args Optional args passed to render.php.
+	 */
+	function sll_section( string $name, array $args = [] ): void {
+		if ( function_exists( 'sll' ) && sll()->lazy_renderer ) {
+			sll()->lazy_renderer->render_placeholder( $name, $args );
+		}
 	}
 }
+
+// Boot only once (prevents recursion / double-load).
+add_action( 'plugins_loaded', static function () {
+	\SLL\Plugin::instance();
+}, 5 );
