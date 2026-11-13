@@ -1,65 +1,109 @@
 <?php
 /**
- * One-time bootstrap: write languages/wpswup-fa_IR.mo from embedded data if missing/corrupt.
+ * Compile languages/wpswup-fa_IR.mo from the .po file if .mo is missing or too small.
+ * Pure PHP — no gettext binaries required.
  */
 defined( 'ABSPATH' ) || exit;
 
-$mo = SLL_DIR . 'languages/wpswup-fa_IR.mo';
-if ( is_readable( $mo ) && filesize( $mo ) > 500 ) {
+$mo_path = SLL_DIR . 'languages/wpswup-fa_IR.mo';
+$po_path = SLL_DIR . 'languages/wpswup-fa_IR.po';
+
+if ( is_readable( $mo_path ) && filesize( $mo_path ) > 500 ) {
+	return;
+}
+if ( ! is_readable( $po_path ) ) {
 	return;
 }
 
-$b64 = <<<'B64'
-3hIElQAAAAAyAAAAHAAAAKwBAAAAAAAAAAAAAAAAAAA8AwAAFgAAAD0DAAAPAAAAVAMAAA8AAABk
-AwAACwAAAHQDAAAUAAAAgAMAAA0AAACVAwAACgAAAKMDAAARAAAArgMAAA0AAADAAwAAOwAAAM4D
-AAAUAAAACgQAAAsAAAAfBAAADgAAACsEAAAPAAAAOgQAAAgAAABKBAAADAAAAFMEAAAtAAAAYAQA
-AA0AAACOBAAAFQAAAJwEAABZAAAAsgQAAA4AAAAMBQAADQAAABsFAAAXAAAAKQUAACQAAABBBQAA
-BAAAAGYFAAASAAAAawUAAEIAAAB+BQAAEgAAAMEFAAAQAAAA1AUAABEAAADlBQAADwAAAPcFAAAU
-AAAABwYAABgAAAAcBgAAEAAAADUGAAANAAAARgYAAAwAAABUBgAACwAAAGEGAAA1AAAAbQYAACwA
-AACjBgAADQAAANAGAAAPAAAA3gYAABAAAADuBgAADgAAAP8GAAAPAAAADgcAAAoAAAAeBwAADgAA
-ACkHAAAHAAAAOAcAAAcAAABABwAAJAAAAEgHAADBAAAAbQcAACQAAAAvCAAAGwAAAFQIAAATAAAA
-cwgAABQAAACJCAAAHwAAAJ8IAAAQAAAAvwgAABYAAADPCAAAFQAAAOEIAAAQAAAA9QgAACoAAAAF
-CQAAFAAAADcJAAAXAAAATAkAABsAAABkCQAAGgAAAIEJAAAJAAAAmwkAABgAAACzCQAAEgAAAL0J
-AAAPAAAAzwkAABQAAADfCQAAFQAAAPMJAAARAAAABwoAABIAAAAXCgAADQAAACsKAAANAAAAOAoA
-AAgAAABFCgAACwAAAFAKEAAALgAAAAAAAABBbmltYXRlZCBTY3JvbGwgUGx1Z2luAEFuaW1hdGlv
-biBTY29wZQBBbmltYXRpb24gVGhlbWUAQ2FjaGUgUGFnZXMAQ2FjaGUgUGx1Z2luIFN1cHBvcnQA
-Q29tcGF0aWJpbGl0eQBEZWJ1ZyBNb2RlAERldGVjdGVkIFNlY3Rpb25zAER1cmF0aW9uIChtcykA
-RWxlbWVudG9yLCBXb29Db21tZXJjZSwgV29vZE1hcnQgcmUtaW5pdCBhZnRlciB0cmFuc2l0aW9u
-cy4ARW5hYmxlIExhenkgUmVuZGVyZXIARW5hYmxlIFN3dXAARXh0ZW5zaWJsZSBBUEkARmFkZSAo
-b2ZmaWNpYWwpAEZlYXR1cmVzAEZvcm1zIFBsdWdpbgBIb29rcywgZmlsdGVycywgYW5kIEpTIGV2
-ZW50cyBmb3IgZGV2ZWxvcGVycy4ATGFyeSBSZW5kZXJlcgBMYXp5IFNlY3Rpb24gUmVuZGVyZXIA
-TGVhdmUgZW1wdHkgdG8gYXV0by1kZXRlY3QgKFdvb2RNYXJ0LCBFbGVtZW50b3IsIOKApykuIEV4
-YW1wbGU6ICNtYWluLCAubWFpbi1wYWdlLXdyYXBwZXIATmlnaHRuaW5nIEZhc3QATGluayBTZWxl
-Y3RvcgBOYXRpdmUgVmlldyBUcmFuc2l0aW9ucwBObyB0ZW1wbGF0ZS1sYXp5IHNlY3Rpb25zIGZv
-dW5kIHlldC4ATm9uZQBPYnNlcnZlciBUaHJlc2hvbGQAT2ZmaWNpYWwgU3d1cCB0aGVtZXM6IEZh
-ZGUsIFNsaWRlLCBPdmVybGF5LiBTZWUgc3d1cC5qcy5vcmcvdGhlbWVzAE92ZXJsYXkg4oaSIGJv
-dHRvbQBPdmVybGF5IOKGkiBsZWZ0AE92ZXJsYXkg4oaSIHJpZ2h0AE92ZXJsYXkg4oaSIHRvcABQ
-YWdlIEJ1aWxkZXIgU3VwcG9ydABQYWdlIFRyYW5zaXRpb24gU2V0dGluZ3MAUHJlbG9hZCBvbiBI
-b3ZlcgBSZWFkIHRoZSBCbG9nAFJlc2V0IFNjcm9sbABSb290IE1hcmdpbgBTUEEgdHJhbnNpdGlv
-bnMgKyBzY3JvbGwtYmFzZWQgbGF6eSBzZWN0aW9uIHJlbmRlcmluZwBTUEEtbGlrZSB0cmFuc2l0
-aW9ucyB3aXRoIHplcm8gcGFnZSByZWxvYWRzLgBTYXZlIFNldHRpbmdzAFNlY3Rpb25zICYgSW5m
-bwBTbGlkZSAob2ZmaWNpYWwpAFNsaWRlIHJldmVyc2VkAFN3YXAgQ29udGFpbmVycwBTd3VwIC8g
-U1BBAFRoZW1lIEZyaWVuZGx5AFZlcnNpb24AV1AgU3d1cABXb3JrcyBhbG9uZ3NpZGUgYW55IFdv
-cmRQcmVzcyB0aGVtZS4AUHJvamVjdC1JZC1WZXJzaW9uOiBXUCBTd3VwIDEuMi4xCkxhbmd1YWdl
-OiBmYV9JUgpNSU1FLVZlcnNpb246IDEuMApDb250ZW50LVR5cGU6IHRleHQvcGxhaW47IGNoYXJz
-ZXQ9VVRGLTgKQ29udGVudC1UcmFuc2Zlci1FbmNvZGluZzogOGJpdApQbHVyYWwtRm9ybXM6IG5w
-bHVyYWxzPTI7IHBsdXJhbD0obiA9PSAwIHx8IG4gPT0gMSk7CgDYp9mG2b7ZhiDYp9iz2qnYsdmI
-2YYg2YXYqtmH2LHZgwDZhdit2K/ZiNizINin2YbZitqp2YjYtdmG2YYA2KrZhdinINin2YbZitqp
-2YjYtdmG2YYA2qnYs9inINij2YHYs9in2K0A2qnYs9inINmB2YjZgdmI2YbbjCDYp9mG2YbbjCDY
-qNmH2KfYqiDYqNin2YbZhwDYs9in2LLYrdin2Kog2KfYs9iq2YjYqNiy2YcA2KjYp9mE2KfYqtmH
-INin2LPYr9mF2KfZhNmG2YcA2YXYrNmH2K/ZiNizICjZhtiz2YXYqtmH2YYA2YbYtdmH2KfZhgDZ
-hdin2LHZiNio2YbbjCDYqtmH2YQg2KfYr9mH2LHZiNio2YbbjCDZiNiy2YjYp9mEINio2KfYs9io
-2KfYqiDYqtmH2YQg2KfYudiq2YjYs9mG2YcA2YjYp9mE2YjYsdmG2Ycg2YXYt9mH2LPYrdmG2YYA
-rNin2LHZgtiqINmG2YcA2YjYp9mE2YjYsdmG2YcA2YjYp9mE2YjYsdmG2Ycg2YjYp9mE2YjYsdmG
-2YcA2YjYp9mE2YjYsdmG2Ycg2YjYp9mE2YjYsdmG2Ycg2KfYsdmI2LHZiNizINmF2KfYsdmI2Ybb
-jCDYp9mE2YjYs9in2YbZiNizINqp2LPYp9in2YbZiNizINqp2LPYp9in2YbZiNizINqp2LPYp9in
-2YbZiNizINqp2LPYp9in2YbZiNizINqp2LPYp9in2YbZiNizINqp2LPYp9in2YbZiNizCgA=
-B64;
-
-$bin = base64_decode( preg_replace( '/\s+/', '', $b64 ), true );
-if ( ! is_string( $bin ) || strlen( $bin ) < 500 ) {
+$po = file_get_contents( $po_path );
+if ( ! is_string( $po ) || $po === '' ) {
 	return;
 }
+
+// Parse simple msgid/msgstr pairs (no plurals in this plugin).
+$entries = [];
+$msgid  = null;
+$msgstr = null;
+$in_id  = false;
+$in_str = false;
+$buf    = '';
+
+$lines = preg_split( "/\r\n|\n|\r/", $po );
+foreach ( $lines as $line ) {
+	if ( preg_match( '/^msgid\s+"(.*)"\s*$/', $line, $m ) ) {
+		if ( $msgid !== null && $msgstr !== null && $msgid !== '' ) {
+			$entries[ $msgid ] = $msgstr;
+		}
+		$msgid  = stripcslashes( $m[1] );
+		$msgstr = null;
+		$in_id  = true;
+		$in_str = false;
+		continue;
+	}
+	if ( preg_match( '/^msgstr\s+"(.*)"\s*$/', $line, $m ) ) {
+		$msgstr = stripcslashes( $m[1] );
+		$in_id  = false;
+		$in_str = true;
+		continue;
+	}
+	if ( preg_match( '/^"(.*)"\s*$/', $line, $m ) ) {
+		$chunk = stripcslashes( $m[1] );
+		if ( $in_id && $msgid !== null ) {
+			$msgid .= $chunk;
+		} elseif ( $in_str && $msgstr !== null ) {
+			$msgstr .= $chunk;
+		}
+		continue;
+	}
+	// blank / comment → flush
+	if ( $line === '' || $line[0] === '#' ) {
+		if ( $msgid !== null && $msgstr !== null && $msgid !== '' ) {
+			$entries[ $msgid ] = $msgstr;
+		}
+		$msgid = $msgstr = null;
+		$in_id = $in_str = false;
+	}
+}
+if ( $msgid !== null && $msgstr !== null && $msgid !== '' ) {
+	$entries[ $msgid ] = $msgstr;
+}
+
+if ( empty( $entries ) ) {
+	return;
+}
+
+// Build GNU MO (little-endian).
+ksort( $entries, SORT_STRING );
+$ids   = array_keys( $entries );
+$strs  = array_values( $entries );
+$count = count( $ids );
+
+// Originals and translations blobs (NUL-terminated).
+$o_blob = '';
+$t_blob = '';
+$o_table = [];
+$t_table = [];
+foreach ( $ids as $i => $id ) {
+	$o_table[] = [ strlen( $id ), strlen( $o_blob ) ];
+	$o_blob   .= $id . "\0";
+	$t_table[] = [ strlen( $strs[ $i ] ), strlen( $t_blob ) ];
+	$t_blob   .= $strs[ $i ] . "\0";
+}
+
+// Header: magic, revision, N, offset originals, offset translations, hash size, hash offset.
+$header_size = 28;
+$o_offset    = $header_size;
+$t_offset    = $header_size + ( 8 * $count );
+$data_offset = $t_offset + ( 8 * $count );
+
+$out  = pack( 'V*', 0x950412de, 0, $count, $o_offset, $t_offset, 0, 0 );
+foreach ( $o_table as $row ) {
+	$out .= pack( 'V*', $row[0], $data_offset + $row[1] );
+}
+foreach ( $t_table as $row ) {
+	$out .= pack( 'V*', $row[0], $data_offset + strlen( $o_blob ) + $row[1] );
+}
+$out .= $o_blob . $t_blob;
 
 // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
-@file_put_contents( $mo, $bin );
+@file_put_contents( $mo_path, $out );
