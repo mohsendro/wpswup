@@ -79,6 +79,11 @@ final class Plugin {
 	}
 
 	private function load_textdomain(): void {
+		// Ensure binary .mo exists (written once from embedded base64 if missing).
+		$install = SLL_DIR . 'languages/install-mo.php';
+		if ( is_readable( $install ) ) {
+			require_once $install;
+		}
 		load_plugin_textdomain( SLL_SLUG, false, dirname( plugin_basename( SLL_FILE ) ) . '/languages' );
 	}
 
