@@ -63,9 +63,6 @@ class Settings_Page {
 		$clean['swup_animation_scope'] = in_array( $input['swup_animation_scope'] ?? '', [ 'html', 'containers' ], true )
 			? $input['swup_animation_scope'] : $defaults['swup_animation_scope'];
 		$clean['swup_native']          = ! empty( $input['swup_native'] );
-		$clean['lazy_enabled']         = ! empty( $input['lazy_enabled'] );
-		$clean['lazy_threshold']       = min( 1.0, max( 0.0, (float) ( $input['lazy_threshold'] ?? $defaults['lazy_threshold'] ) ) );
-		$clean['lazy_rootMargin']      = sanitize_text_field( $input['lazy_rootMargin'] ?? $defaults['lazy_rootMargin'] );
 		$clean['compat_cache_plugins'] = ! empty( $input['compat_cache_plugins'] );
 		$clean['compat_page_builders'] = ! empty( $input['compat_page_builders'] );
 		$clean['debug_mode']           = ! empty( $input['debug_mode'] );
@@ -77,8 +74,7 @@ class Settings_Page {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
 		}
-		$opts     = sll()->settings->all();
-		$sections = sll()->lazy->discover_sections();
+		$opts = sll()->settings->all();
 		?>
 		<div class="wrap sll-admin-wrap">
 			<div class="sll-admin-header">
@@ -91,7 +87,7 @@ class Settings_Page {
 				</div>
 				<div>
 					<h1 class="sll-admin-header__title"><?php esc_html_e( 'WP Swup', 'wpswup' ); ?></h1>
-					<p class="sll-admin-header__sub"><?php esc_html_e( 'SPA transitions + scroll-based lazy section rendering', 'wpswup' ); ?></p>
+					<p class="sll-admin-header__sub"><?php esc_html_e( 'SPA-like page transitions powered by Swup.js 4', 'wpswup' ); ?></p>
 				</div>
 			</div>
 
@@ -101,9 +97,8 @@ class Settings_Page {
 				<div class="sll-admin-tabs" id="sll-tabs">
 					<nav class="sll-admin-tabs__nav">
 						<button type="button" class="sll-tab active" data-tab="swup"><?php esc_html_e( 'Swup / SPA', 'wpswup' ); ?></button>
-						<button type="button" class="sll-tab" data-tab="lazy"><?php esc_html_e( 'Lazy Renderer', 'wpswup' ); ?></button>
 						<button type="button" class="sll-tab" data-tab="compat"><?php esc_html_e( 'Compatibility', 'wpswup' ); ?></button>
-						<button type="button" class="sll-tab" data-tab="info"><?php esc_html_e( 'Sections & Info', 'wpswup' ); ?></button>
+						<button type="button" class="sll-tab" data-tab="info"><?php esc_html_e( 'Info', 'wpswup' ); ?></button>
 					</nav>
 
 					<div class="sll-tab-panel active" id="tab-swup">
@@ -224,31 +219,6 @@ class Settings_Page {
 						</div>
 					</div>
 
-					<div class="sll-tab-panel" id="tab-lazy">
-						<div class="sll-card">
-							<h2><?php esc_html_e( 'Lazy Section Renderer', 'wpswup' ); ?></h2>
-							<table class="form-table sll-form-table" role="presentation">
-								<tr>
-									<th><?php esc_html_e( 'Enable Lazy Renderer', 'wpswup' ); ?></th>
-									<td>
-										<label class="sll-toggle">
-											<input type="checkbox" name="sll_options[lazy_enabled]" value="1" <?php checked( $opts['lazy_enabled'] ); ?>>
-											<span class="sll-toggle__slider"></span>
-										</label>
-									</td>
-								</tr>
-								<tr>
-									<th><?php esc_html_e( 'Observer Threshold', 'wpswup' ); ?></th>
-									<td><input type="number" name="sll_options[lazy_threshold]" value="<?php echo esc_attr( $opts['lazy_threshold'] ); ?>" min="0" max="1" step="0.05" class="small-text"></td>
-								</tr>
-								<tr>
-									<th><?php esc_html_e( 'Root Margin', 'wpswup' ); ?></th>
-									<td><input type="text" name="sll_options[lazy_rootMargin]" value="<?php echo esc_attr( $opts['lazy_rootMargin'] ); ?>" class="regular-text"></td>
-								</tr>
-							</table>
-						</div>
-					</div>
-
 					<div class="sll-tab-panel" id="tab-compat">
 						<div class="sll-card">
 							<h2><?php esc_html_e( 'Compatibility', 'wpswup' ); ?></h2>
@@ -287,16 +257,8 @@ class Settings_Page {
 
 					<div class="sll-tab-panel" id="tab-info">
 						<div class="sll-card">
-							<h2><?php esc_html_e( 'Detected Sections', 'wpswup' ); ?></h2>
-							<?php if ( empty( $sections ) ) : ?>
-								<p><?php esc_html_e( 'No template-lazy sections found yet.', 'wpswup' ); ?></p>
-							<?php else : ?>
-								<ul>
-									<?php foreach ( $sections as $sec ) : ?>
-										<li><code><?php echo esc_html( $sec ); ?></code></li>
-									<?php endforeach; ?>
-								</ul>
-							<?php endif; ?>
+							<h2><?php esc_html_e( 'About', 'wpswup' ); ?></h2>
+							<p><?php esc_html_e( 'WP Swup provides SPA-like page transitions using Swup.js 4. Compatible with WooCommerce, Elementor, and WoodMart.', 'wpswup' ); ?></p>
 							<p class="description"><?php esc_html_e( 'Version', 'wpswup' ); ?>: <?php echo esc_html( SLL_VERSION ); ?></p>
 						</div>
 					</div>
