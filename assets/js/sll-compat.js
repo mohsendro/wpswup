@@ -1,59 +1,74 @@
 /**
- * WP Swup – compatibility layer
- * Prevents Swup from intercepting lightboxes, media files, external links, WooCommerce AJAX, etc.
+ * WP Swup – compatibility layer (v1.1.5)
+ *
+ * 1) ignoreVisit: lightboxes, media, external, WP/Woo special URLs
+ * 2) Disable Swup inside Elementor editor / Customizer
+ * 3) After page:view — rebind CF7 / common widgets safely
  */
 ( function () {
 	'use strict';
+
+	var MEDIA_EXT =
+		/\.(jpe?g|png|gif|webp|avif|svg|bmp|ico|pdf|zip|rar|7z|gz|tar|mp4|webm|mp3|wav|ogg|flac|doc|docx|xls|xlsx|ppt|pptx|txt|csv)$/i;
+
+	var LIGHTBOX_SEL =
+		'[data-elementor-open-lightbox], [data-fancybox], [data-lightbox], [data-glightbox], [data-pswp], [data-pswp-src], [data-rel="lightbox"], [data-rel^="prettyPhoto"], [data-open-lightbox], [rel="lightbox"], [rel^="prettyPhoto"], [rel^="magnific"], [data-magnific], [data-toggle="lightbox"], [data-uk-lightbox], [uk-lightbox]';
+
+	var GALLERY_SEL =
+		'.woocommerce-product-gallery, .wd-gallery, .wd-product-gallery, .woodmart-product-gallery, .photoswipe, .pswp, .elementor-widget-image-gallery, .elementor-widget-gallery, .elementor-widget-image, .wp-block-gallery, .gallery, .tiled-gallery, .product-image-wrap, .wd-carousel-wrap';
+
+	var IGNORE_LINK_CLASS =
+		'.lightbox, .fancybox, .glightbox, .photoswipe, .zoom, .wd-zoom, .pswp-link, a.woocommerce-product-gallery__trigger, .no-swup, .noswup';
+
+	function pathOnly( href ) {
+		return href.split( '?' )[ 0 ].split( '#' )[ 0 ].toLowerCase();
+	}
 
 	function shouldIgnoreVisit( url, el ) {
 		if ( ! el ) return false;
 
 		if ( el.closest( '[data-no-swup]' ) ) return true;
 		if ( el.hasAttribute( 'download' ) ) return true;
-		if ( el.getAttribute( 'target' ) === '_blank' ) return true;
+
+		var target = ( el.getAttribute( 'target' ) || '' ).toLowerCase();
+		if ( target && target !== '_self' ) return true;
 
 		var href = ( el.getAttribute( 'href' ) || url || '' ).trim();
 		if ( ! href || href === '#' || href.charAt( 0 ) === '#' ) return true;
-		if ( href.indexOf( 'mailto:' ) === 0 || href.indexOf( 'tel:' ) === 0 || href.indexOf( 'javascript:' ) === 0 ) {
+		if ( /^(mailto:|tel:|sms:|javascript:|blob:|data:)/i.test( href ) ) return true;
+
+		if ( MEDIA_EXT.test( pathOnly( href ) ) ) return true;
+
+		if ( el.closest( LIGHTBOX_SEL ) ) return true;
+		if ( el.matches && el.matches( IGNORE_LINK_CLASS ) ) return true;
+
+		var gallery = el.closest( GALLERY_SEL );
+		if ( gallery && MEDIA_EXT.test( pathOnly( href ) ) ) return true;
+
+		if ( /add-to-cart=|remove_item=|undo_item|update_cart|apply_coupon|wc-ajax=/.test( href ) ) {
 			return true;
 		}
-
-		var path = href.split( '?' )[ 0 ].split( '#' )[ 0 ].toLowerCase();
-		if ( /\.(jpe?g|png|gif|webp|avif|svg|bmp|ico|pdf|zip|rar|7z|gz|mp4|webm|mp3|wav|ogg|doc|docx|xls|xlsx|ppt|pptx)$/i.test( path ) ) {
+		if ( el.closest( '.ajax_add_to_cart, .add_to_cart_button, .remove_from_cart_button, .single_add_to_cart_button' ) ) {
 			return true;
 		}
-
-		if (
-			el.closest(
-				'[data-elementor-open-lightbox], [data-fancybox], [data-lightbox], [data-glightbox], [data-pswp], [data-pswp-src], [data-rel="lightbox"], [data-rel^="prettyPhoto"], [data-open-lightbox], [rel="lightbox"], [rel^="prettyPhoto"], [rel^="magnific"], [data-magnific], [data-toggle="lightbox"]'
-			)
-		) {
-			return true;
-		}
-
-		if (
-			el.matches &&
-			el.matches(
-				'.lightbox, .fancybox, .glightbox, .photoswipe, .zoom, .wd-zoom, .pswp-link, a.woocommerce-product-gallery__trigger'
-			)
-		) {
-			return true;
-		}
-
-		var galleryParent = el.closest(
-			'.woocommerce-product-gallery, .wd-gallery, .wd-product-gallery, .woodmart-product-gallery, .photoswipe, .pswp, .elementor-widget-image-gallery, .elementor-widget-gallery, .wp-block-gallery, .gallery, .tiled-gallery, .product-image-wrap'
-		);
-		if ( galleryParent && /\.(jpe?g|png|gif|webp|avif|svg|bmp)(\?|$)/i.test( href ) ) {
-			return true;
-		}
-
-		if ( /add-to-cart=|remove_item=|undo_item|update_cart|apply_coupon/.test( href ) ) return true;
-		if ( el.closest( '.ajax_add_to_cart, .add_to_cart_button, .remove_from_cart_button' ) ) return true;
 
 		try {
 			var u = new URL( href, window.location.origin );
-			if ( u.pathname.indexOf( '/wp-admin' ) !== -1 || u.pathname.indexOf( '/wp-login' ) !== -1 ) return true;
 			if ( u.origin !== window.location.origin ) return true;
+
+			var p = u.pathname.toLowerCase();
+			if ( p.indexOf( '/wp-admin' ) !== -1 ) return true;
+			if ( p.indexOf( '/wp-login' ) !== -1 ) return true;
+			if ( p.indexOf( '/wp-json' ) !== -1 ) return true;
+			if ( p.indexOf( 'xmlrpc.php' ) !== -1 ) return true;
+
+			if ( u.search.indexOf( 'customer-logout' ) !== -1 ) return true;
+			if ( u.search.indexOf( 'action=logout' ) !== -1 ) return true;
+			if ( u.search.indexOf( '_wpnonce=' ) !== -1 && /logout|log-out|log_out/.test( href ) ) return true;
+
+			if ( /\/(checkout|order-pay|order-received)(\/|$)/i.test( p ) ) return true;
+			if ( u.search.indexOf( 'pay_for_order' ) !== -1 ) return true;
+			if ( u.search.indexOf( 'key=wc_order' ) !== -1 ) return true;
 		} catch ( e ) {
 			return true;
 		}
@@ -61,26 +76,93 @@
 		return false;
 	}
 
+	function isEditorContext() {
+		try {
+			if ( window.elementorFrontend && window.elementorFrontend.isEditMode && window.elementorFrontend.isEditMode() ) {
+				return true;
+			}
+		} catch ( e ) {}
+		if ( document.body && document.body.classList.contains( 'elementor-editor-active' ) ) return true;
+		if ( document.body && document.body.classList.contains( 'wp-customizer' ) ) return true;
+		if ( window.location.search.indexOf( 'elementor-preview=' ) !== -1 ) return true;
+		if ( window.location.pathname.indexOf( '/wp-admin' ) !== -1 ) return true;
+		return false;
+	}
+
 	function patchSwup() {
 		if ( ! window.SLL || ! window.SLL.swup ) return false;
 		var swup = window.SLL.swup;
-		var prev = swup.options && swup.options.ignoreVisit;
 
+		if ( isEditorContext() ) {
+			try {
+				swup.destroy();
+			} catch ( e ) {}
+			if ( window.sllConfig && window.sllConfig.debug ) {
+				console.log( '[SLL] Swup disabled in editor/customizer' );
+			}
+			return true;
+		}
+
+		var prev = swup.options && swup.options.ignoreVisit;
 		swup.options.ignoreVisit = function ( url, args ) {
 			var el = args && args.el;
 			if ( shouldIgnoreVisit( url, el ) ) return true;
-			if ( typeof prev === 'function' && prev( url, args ) ) return true;
+			if ( typeof prev === 'function' && prev( url, args || {} ) ) return true;
 			return false;
 		};
 
+		var prevSkip = swup.options.skipPopStateHandling;
+		swup.options.skipPopStateHandling = function ( event ) {
+			if ( typeof prevSkip === 'function' && prevSkip( event ) ) return true;
+			var state = event && event.state;
+			if ( state && state.source === 'swup' ) return false;
+			var h = window.location.hash || '';
+			if ( /gid=|pid=|&photo|lightbox|pswp/i.test( h ) ) return true;
+			return ! state || state.source !== 'swup';
+		};
+
 		window.SLL.shouldIgnoreVisit = shouldIgnoreVisit;
+
+		if ( ! swup._sllCompatBound ) {
+			swup._sllCompatBound = true;
+			if ( swup.hooks ) {
+				swup.hooks.on( 'page:view', onPageView );
+			}
+		}
+
 		if ( window.sllConfig && window.sllConfig.debug ) {
-			console.log( '[SLL] Compat layer: lightbox/media ignoreVisit active' );
+			console.log( '[SLL] Compat layer active' );
 		}
 		return true;
 	}
 
+	function onPageView() {
+		if ( typeof window.wpcf7 !== 'undefined' && typeof window.wpcf7.init === 'function' ) {
+			try {
+				document.querySelectorAll( '.wpcf7 > form' ).forEach( function ( form ) {
+					window.wpcf7.init( form );
+				} );
+			} catch ( e ) {}
+		}
+
+		if ( typeof window.jQuery !== 'undefined' ) {
+			try {
+				window.jQuery( document ).trigger( 'gform_post_render' );
+			} catch ( e ) {}
+		}
+
+		if ( typeof window.jQuery !== 'undefined' && window.jQuery.fn && window.jQuery.fn.revolution ) {
+			try {
+				window.jQuery( '.rev_slider' ).each( function () {
+					var $s = window.jQuery( this );
+					if ( $s.revolution ) $s.revredraw();
+				} );
+			} catch ( e ) {}
+		}
+	}
+
 	function boot() {
+		if ( isEditorContext() ) return;
 		if ( patchSwup() ) return;
 		document.addEventListener( 'sll:ready', function () {
 			patchSwup();
