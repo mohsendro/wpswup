@@ -63,6 +63,10 @@ class Settings_Page {
 		$clean['swup_animation_scope'] = in_array( $input['swup_animation_scope'] ?? '', [ 'html', 'containers' ], true )
 			? $input['swup_animation_scope'] : $defaults['swup_animation_scope'];
 		$clean['swup_native']          = ! empty( $input['swup_native'] );
+		$clean['swup_scripts_plugin']  = ! empty( $input['swup_scripts_plugin'] );
+		$clean['swup_await_media']     = ! empty( $input['swup_await_media'] );
+		$timeout = absint( $input['swup_asset_timeout'] ?? $defaults['swup_asset_timeout'] );
+		$clean['swup_asset_timeout']   = max( 1000, min( 30000, $timeout ?: 8000 ) );
 		$clean['compat_cache_plugins'] = ! empty( $input['compat_cache_plugins'] );
 		$clean['compat_page_builders'] = ! empty( $input['compat_page_builders'] );
 		$clean['debug_mode']           = ! empty( $input['debug_mode'] );
@@ -215,6 +219,33 @@ class Settings_Page {
 										</label>
 									</td>
 								</tr>
+								<tr>
+									<th><?php esc_html_e( 'Scripts Plugin', 'wpswup' ); ?></th>
+									<td>
+										<label class="wpswup-toggle">
+											<input type="checkbox" name="wpswup_options[swup_scripts_plugin]" value="1" <?php checked( $opts['swup_scripts_plugin'] ?? true ); ?>>
+											<span class="wpswup-toggle__slider"></span>
+										</label>
+										<p class="description"><?php esc_html_e( 'Re-evaluate page scripts on transition via @swup/scripts-plugin (head + body). Persistent handles are ignored.', 'wpswup' ); ?></p>
+									</td>
+								</tr>
+								<tr>
+									<th><?php esc_html_e( 'Await Media & Images', 'wpswup' ); ?></th>
+									<td>
+										<label class="wpswup-toggle">
+											<input type="checkbox" name="wpswup_options[swup_await_media]" value="1" <?php checked( $opts['swup_await_media'] ?? true ); ?>>
+											<span class="wpswup-toggle__slider"></span>
+										</label>
+										<p class="description"><?php esc_html_e( 'Un-lazy and decode images/backgrounds before DOM replace so the new page is fully painted.', 'wpswup' ); ?></p>
+									</td>
+								</tr>
+								<tr>
+									<th><?php esc_html_e( 'Asset Timeout (ms)', 'wpswup' ); ?></th>
+									<td>
+										<input type="number" name="wpswup_options[swup_asset_timeout]" value="<?php echo esc_attr( $opts['swup_asset_timeout'] ?? 8000 ); ?>" min="1000" max="30000" step="500" class="small-text">
+										<p class="description"><?php esc_html_e( 'Maximum wait for stylesheets, scripts, and images before forcing content replace (1000–30000).', 'wpswup' ); ?></p>
+									</td>
+								</tr>
 							</table>
 						</div>
 					</div>
@@ -224,29 +255,30 @@ class Settings_Page {
 							<h2><?php esc_html_e( 'Compatibility', 'wpswup' ); ?></h2>
 							<table class="form-table wpswup-form-table" role="presentation">
 								<tr>
-									<th><?php esc_html_e( 'Cache Plugin Support', 'wpswup' ); ?></th>
+									<th><?php esc_html_e( 'Cache Plugins', 'wpswup' ); ?></th>
 									<td>
 										<label class="wpswup-toggle">
-											<input type="checkbox" name="wpswup_options[compat_cache_plugins]" value="1" <?php checked( $opts['compat_cache_plugins'] ); ?>>
+											<input type="checkbox" name="wpswup_options[compat_cache_plugins]" value="1" <?php checked( $opts['compat_cache_plugins'] ?? true ); ?>>
 											<span class="wpswup-toggle__slider"></span>
 										</label>
+										<p class="description"><?php esc_html_e( 'Add Cache-Control / Vary headers so HTML is not served stale after SPA navigations.', 'wpswup' ); ?></p>
 									</td>
 								</tr>
 								<tr>
-									<th><?php esc_html_e( 'Page Builder Support', 'wpswup' ); ?></th>
+									<th><?php esc_html_e( 'Page Builders', 'wpswup' ); ?></th>
 									<td>
 										<label class="wpswup-toggle">
-											<input type="checkbox" name="wpswup_options[compat_page_builders]" value="1" <?php checked( $opts['compat_page_builders'] ); ?>>
+											<input type="checkbox" name="wpswup_options[compat_page_builders]" value="1" <?php checked( $opts['compat_page_builders'] ?? true ); ?>>
 											<span class="wpswup-toggle__slider"></span>
 										</label>
-										<p class="description"><?php esc_html_e( 'Elementor, WooCommerce, WoodMart re-init after transitions.', 'wpswup' ); ?></p>
+										<p class="description"><?php esc_html_e( 'Elementor / WoodMart re-init after each transition.', 'wpswup' ); ?></p>
 									</td>
 								</tr>
 								<tr>
 									<th><?php esc_html_e( 'Debug Mode', 'wpswup' ); ?></th>
 									<td>
 										<label class="wpswup-toggle">
-											<input type="checkbox" name="wpswup_options[debug_mode]" value="1" <?php checked( $opts['debug_mode'] ); ?>>
+											<input type="checkbox" name="wpswup_options[debug_mode]" value="1" <?php checked( $opts['debug_mode'] ?? false ); ?>>
 											<span class="wpswup-toggle__slider"></span>
 										</label>
 									</td>
@@ -258,25 +290,28 @@ class Settings_Page {
 					<div class="wpswup-tab-panel" id="tab-info">
 						<div class="wpswup-card">
 							<h2><?php esc_html_e( 'About', 'wpswup' ); ?></h2>
-							<p><?php esc_html_e( 'WP Swup provides SPA-like page transitions using Swup.js 4. Compatible with WooCommerce, Elementor, and WoodMart.', 'wpswup' ); ?></p>
-							<p class="description"><?php esc_html_e( 'Version', 'wpswup' ); ?>: <?php echo esc_html( WPSWUP_VERSION ); ?></p>
+							<p><?php esc_html_e( 'WP Swup brings SPA-like page transitions to WordPress using Swup.js 4, with first-class support for WooCommerce, Elementor, and WoodMart.', 'wpswup' ); ?></p>
+							<p><strong><?php esc_html_e( 'Version', 'wpswup' ); ?>:</strong> <?php echo esc_html( WPSWUP_VERSION ); ?></p>
+							<p><a href="https://github.com/mohsendro/wpswup" target="_blank" rel="noopener noreferrer">GitHub</a></p>
 						</div>
 					</div>
 				</div>
 
-				<?php submit_button( __( 'Save Settings', 'wpswup' ) ); ?>
+				<?php submit_button(); ?>
 			</form>
 		</div>
 		<script>
 		(function(){
-			var tabs = document.querySelectorAll('#wpswup-tabs .wpswup-tab');
-			var panels = document.querySelectorAll('#wpswup-tabs .wpswup-tab-panel');
+			var tabs=document.querySelectorAll('.wpswup-tab');
+			var panels=document.querySelectorAll('.wpswup-tab-panel');
 			tabs.forEach(function(tab){
-				tab.addEventListener('click', function(){
-					tabs.forEach(function(t){ t.classList.remove('active'); });
-					panels.forEach(function(p){ p.classList.remove('active'); });
+				tab.addEventListener('click',function(){
+					tabs.forEach(function(t){t.classList.remove('active');});
+					panels.forEach(function(p){p.classList.remove('active');});
 					tab.classList.add('active');
-					document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+					var id='tab-'+tab.getAttribute('data-tab');
+					var panel=document.getElementById(id);
+					if(panel) panel.classList.add('active');
 				});
 			});
 		})();
