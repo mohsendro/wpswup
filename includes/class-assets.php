@@ -14,6 +14,7 @@ class Assets {
 
 	const SWUP_VERSION             = '4.10.0';
 	const HEAD_PLUGIN_VERSION      = '2.3.1';
+	const SCRIPTS_PLUGIN_VERSION   = '2.1.1';
 	const SCROLL_PLUGIN_VERSION    = '3.2.0';
 	const PRELOAD_PLUGIN_VERSION   = '3.2.12';
 	const FORMS_PLUGIN_VERSION     = '2.1.0';
@@ -22,8 +23,34 @@ class Assets {
 	const SLIDE_THEME_VERSION      = '2.0.2';
 	const OVERLAY_THEME_VERSION    = '2.0.2';
 
+	/** Handles that must never be re-evaluated by @swup/scripts-plugin. */
+	private const IGNORE_SCRIPT_HANDLES = [
+		'swup',
+		'swup-head-plugin',
+		'swup-scripts-plugin',
+		'swup-progress-plugin',
+		'swup-fade-theme',
+		'swup-slide-theme',
+		'swup-overlay-theme',
+		'swup-scroll-plugin',
+		'swup-preload-plugin',
+		'swup-forms-plugin',
+		'wpswup-main',
+		'wpswup-woodmart-fix',
+		'wpswup-compat',
+		'wpswup-elementor',
+		'jquery',
+		'jquery-core',
+		'jquery-migrate',
+		'wp-hooks',
+		'wp-i18n',
+		'wp-polyfill',
+		'admin-bar',
+	];
+
 	public function __construct() {
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_frontend' ] );
+		add_filter( 'script_loader_tag', [ $this, 'tag_ignored_scripts' ], 10, 3 );
 	}
 
 	private function asset_url( string $relative ): string {
@@ -39,6 +66,18 @@ class Assets {
 		$min  = preg_replace( '/\.(js|css)$/', '.min.$1', $relative );
 		$path = file_exists( WPSWUP_DIR . $min ) ? WPSWUP_DIR . $min : WPSWUP_DIR . $relative;
 		return file_exists( $path ) ? (string) filemtime( $path ) : WPSWUP_VERSION;
+	}
+
+	/**
+	 * Inject data-swup-ignore-script so ScriptsPlugin never re-runs persistent scripts.
+	 */
+	public function tag_ignored_scripts( string $tag, string $handle, string $src ): string {
+		if ( in_array( $handle, self::IGNORE_SCRIPT_HANDLES, true ) ) {
+			if ( false === strpos( $tag, 'data-swup-ignore-script' ) ) {
+				$tag = str_replace( '<script ', '<script data-swup-ignore-script ', $tag );
+			}
+		}
+		return $tag;
 	}
 
 	public function enqueue_frontend(): void {
@@ -65,6 +104,16 @@ class Assets {
 				self::HEAD_PLUGIN_VERSION,
 				true
 			);
+
+			if ( ! empty( $opts['swup_scripts_plugin'] ) ) {
+				wp_enqueue_script(
+					'swup-scripts-plugin',
+					'https://unpkg.com/@swup/scripts-plugin@' . self::SCRIPTS_PLUGIN_VERSION . '/dist/index.umd.js',
+					[ 'swup' ],
+					self::SCRIPTS_PLUGIN_VERSION,
+					true
+				);
+			}
 
 			wp_enqueue_script(
 				'swup-progress-plugin',
@@ -194,6 +243,9 @@ class Assets {
 			'forms'             => (bool) ( $opts['swup_forms'] ?? false ),
 			'animationScope'    => $opts['swup_animation_scope'] ?? 'html',
 			'native'            => (bool) ( $opts['swup_native'] ?? false ),
+			'scriptsPlugin'     => (bool) ( $opts['swup_scripts_plugin'] ?? true ),
+			'awaitMedia'        => (bool) ( $opts['swup_await_media'] ?? true ),
+			'assetTimeout'      => max( 1000, (int) ( $opts['swup_asset_timeout'] ?? 8000 ) ),
 			'debug'             => (bool) $opts['debug_mode'],
 			'compatWoo'         => class_exists( 'WooCommerce' ),
 			'compatElementor'   => defined( 'ELEMENTOR_VERSION' ),
