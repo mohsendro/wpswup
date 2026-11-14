@@ -110,7 +110,8 @@ class Assets {
 				);
 			}
 
-			if ( ! empty( $opts['swup_preload'] ) ) {
+			// Preload plugin requires Swup cache; enqueue only when both are on.
+			if ( ! empty( $opts['swup_preload'] ) && ! empty( $opts['swup_cache'] ) ) {
 				wp_enqueue_script(
 					'swup-preload-plugin',
 					'https://unpkg.com/@swup/preload-plugin@' . self::PRELOAD_PLUGIN_VERSION . '/dist/index.umd.js',
