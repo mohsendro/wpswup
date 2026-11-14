@@ -3,7 +3,7 @@
  * Plugin Name: WP Swup
  * Plugin URI:  https://github.com/mohsendro/wpswup
  * Description: SPA-like page transitions with Swup.js 4 for WordPress. Compatible with WooCommerce, Elementor, and WoodMart.
- * Version:     1.4.1
+ * Version:     1.5.0
  * Author:      Mohsen Derogar
  * Author URI:  https://github.com/mohsendro
  * License:     GPL-2.0+
@@ -16,7 +16,7 @@
 defined( 'ABSPATH' ) || exit;
 
 if ( ! defined( 'WPSWUP_VERSION' ) ) {
-	define( 'WPSWUP_VERSION', '1.4.1' );
+	define( 'WPSWUP_VERSION', '1.5.0' );
 }
 if ( ! defined( 'WPSWUP_FILE' ) ) {
 	define( 'WPSWUP_FILE', __FILE__ );
