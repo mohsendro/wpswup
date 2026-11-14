@@ -390,6 +390,11 @@
 				log( 'Swup disabled or not loaded.' );
 				return;
 			}
+			// Never create a second instance (DOMContentLoaded re-fire / script re-eval).
+			if ( this.swup ) {
+				log( 'Swup already initialized — skip re-init' );
+				return;
+			}
 			this.containers = resolveContainers();
 			if ( ! this.containers.length ) return;
 
@@ -477,7 +482,8 @@
 				plugins,
 				animationSelector: '[class*="transition-"]',
 				animationScope: cfg.animationScope || 'html',
-				native: !! cfg.native,
+				// Force off: native View Transitions + rapid re-init caused AbortError/TimeoutError loops.
+				native: false,
 				ignoreVisit: ( url, { el } = {} ) => {
 					if ( ! el ) return false;
 					if ( el.closest( '[data-no-swup]' ) ) return true;
@@ -525,19 +531,24 @@
 				} );
 			};
 
-			s.hooks.on( 'page:load', ( visit ) => {
-				visit._wpswupAssets = runAssetPipeline( visit );
-			} );
-
+			// visit.to.document is assigned AFTER page:load resolves (Swup 4 source).
+			// Running the pipeline only in before:content:replace guarantees a document.
 			s.hooks.before( 'content:replace', async ( visit ) => {
-				const doc = visit && visit.to && visit.to.document;
-				if ( visit && visit._wpswupAssets ) {
-					await withTimeout( visit._wpswupAssets, ASSET_TIMEOUT + 500 );
-				} else if ( doc ) {
-					await withTimeout( runAssetPipeline( visit ), ASSET_TIMEOUT + 500 );
+				let doc = visit && visit.to && visit.to.document;
+				if ( ! doc && visit && visit.to && visit.to.html ) {
+					try {
+						doc = new DOMParser().parseFromString( visit.to.html, 'text/html' );
+						visit.to.document = doc;
+						log( 'Parsed document from visit.to.html' );
+					} catch ( e ) {
+						log( 'Failed to parse visit.to.html', e );
+					}
 				}
 				if ( doc ) {
+					await withTimeout( runAssetPipeline( visit ), ASSET_TIMEOUT + 500 );
 					syncBodyClassesUniversal( doc );
+				} else {
+					log( 'before:content:replace — no document available' );
 				}
 			} );
 
@@ -568,9 +579,9 @@
 		}
 
 		_reinitCompat( visit ) {
+			// Do NOT re-dispatch DOMContentLoaded — our boot() listens for it and would
+			// call init() again, creating a second Swup and AbortError/TimeoutError storms.
 			try {
-				document.dispatchEvent( new Event( 'DOMContentLoaded', { bubbles: true } ) );
-				window.dispatchEvent( new Event( 'load' ) );
 				window.dispatchEvent( new Event( 'resize' ) );
 			} catch ( e ) {}
 
@@ -650,15 +661,18 @@
 		config: cfg,
 	} );
 
+	let booted = false;
 	const boot = () => {
+		if ( booted ) return;
+		booted = true;
 		swupManager.init();
 		bus.emit( 'ready', { WPSWUP: window.WPSWUP } );
 		document.dispatchEvent( new CustomEvent( 'wpswup:ready' ) );
-		log( 'Ready (Swup 4 / v1.5.1).' );
+		log( 'Ready (Swup 4 / v1.5.2).' );
 	};
 
 	if ( document.readyState === 'loading' ) {
-		document.addEventListener( 'DOMContentLoaded', boot );
+		document.addEventListener( 'DOMContentLoaded', boot, { once: true } );
 	} else {
 		boot();
 	}
