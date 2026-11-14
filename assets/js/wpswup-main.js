@@ -243,8 +243,14 @@
 
 		const collectUrl = ( url ) => {
 			if ( ! url || typeof url !== 'string' ) return;
-			const clean = url.trim().replace( /^url\(["']?/, '' ).replace( /["']?\)$/, '' );
+			let clean = url.trim();
+			// Strip CSS url(...) wrapper and any surrounding quotes.
+			clean = clean.replace( /^url\(\s*/i, '' ).replace( /\s*\)$/, '' );
+			clean = clean.replace( /^["']+/, '' ).replace( /["']+$/, '' );
+			clean = clean.trim();
 			if ( ! clean || clean.startsWith( 'data:' ) ) return;
+			// Reject obviously broken values (leftover quotes mid-string).
+			if ( /['"]/.test( clean ) ) return;
 			urls.add( clean );
 		};
 
@@ -390,7 +396,6 @@
 				log( 'Swup disabled or not loaded.' );
 				return;
 			}
-			// Never create a second instance (DOMContentLoaded re-fire / script re-eval).
 			if ( this.swup ) {
 				log( 'Swup already initialized — skip re-init' );
 				return;
@@ -425,9 +430,6 @@
 				);
 			}
 
-			// optin:true = only scripts marked data-swup-reload-script are re-run.
-			// optin:false was re-executing wpswup-main / jquery / theme bundles and
-			// creating a second Swup instance after every transition.
 			if ( cfg.scriptsPlugin && typeof SwupScriptsPlugin !== 'undefined' ) {
 				plugins.push(
 					new SwupScriptsPlugin( {
@@ -482,7 +484,6 @@
 				plugins,
 				animationSelector: '[class*="transition-"]',
 				animationScope: cfg.animationScope || 'html',
-				// Force off: native View Transitions + rapid re-init caused AbortError/TimeoutError loops.
 				native: false,
 				ignoreVisit: ( url, { el } = {} ) => {
 					if ( ! el ) return false;
@@ -531,8 +532,6 @@
 				} );
 			};
 
-			// visit.to.document is assigned AFTER page:load resolves (Swup 4 source).
-			// Running the pipeline only in before:content:replace guarantees a document.
 			s.hooks.before( 'content:replace', async ( visit ) => {
 				let doc = visit && visit.to && visit.to.document;
 				if ( ! doc && visit && visit.to && visit.to.html ) {
@@ -578,12 +577,226 @@
 			} );
 		}
 
+		_reinitFrontendLibs() {
+			const roots = this.containers
+				.map( ( sel ) => {
+					try {
+						return document.querySelector( sel );
+					} catch ( e ) {
+						return null;
+					}
+				} )
+				.filter( Boolean );
+			const scope = roots.length ? roots : [ document ];
+
+			const inScope = ( selector ) => {
+				for ( let i = 0; i < scope.length; i++ ) {
+					const el = scope[ i ].querySelector ? scope[ i ].querySelector( selector ) : null;
+					if ( el ) return el;
+				}
+				return document.querySelector( selector );
+			};
+			const allInScope = ( selector ) => {
+				const out = [];
+				scope.forEach( ( root ) => {
+					if ( root.querySelectorAll ) {
+						root.querySelectorAll( selector ).forEach( ( el ) => out.push( el ) );
+					}
+				} );
+				if ( ! out.length ) {
+					document.querySelectorAll( selector ).forEach( ( el ) => out.push( el ) );
+				}
+				return out;
+			};
+
+			if ( typeof Swiper !== 'undefined' ) {
+				const swiperConfigs = [
+					{
+						sel: '.portfolioSwiper',
+						opts: {
+							autoplay: { delay: 2000, disableOnInteraction: false },
+							speed: 500,
+							loop: true,
+							slidesPerView: 1.1,
+							spaceBetween: 20,
+							pagination: { el: '.portfolioPagination', clickable: true },
+							breakpoints: { 768: { slidesPerView: 2.2 }, 992: { slidesPerView: 2.4 } },
+							keyboard: { enabled: true, onlyInViewport: false },
+						},
+					},
+					{
+						sel: '.projectSwiper',
+						opts: {
+							autoplay: { delay: 2000, disableOnInteraction: false },
+							speed: 500,
+							loop: true,
+							slidesPerView: 1.1,
+							spaceBetween: 20,
+							pagination: { el: '.projectPagination', clickable: true },
+							breakpoints: {
+								768: { slidesPerView: 2.2 },
+								992: { slidesPerView: 2.4 },
+								1200: { slidesPerView: 3.4 },
+							},
+							keyboard: { enabled: true, onlyInViewport: false },
+						},
+					},
+					{
+						sel: '.postSwiper',
+						opts: {
+							autoplay: { delay: 2000, disableOnInteraction: false },
+							speed: 500,
+							loop: true,
+							slidesPerView: 1.1,
+							spaceBetween: 20,
+							pagination: { el: '.postPagination', clickable: true },
+							breakpoints: {
+								768: { slidesPerView: 2.2 },
+								992: { slidesPerView: 2.4 },
+								1200: { slidesPerView: 3.4 },
+							},
+							keyboard: { enabled: true, onlyInViewport: false },
+						},
+					},
+				];
+
+				swiperConfigs.forEach( ( cfgItem ) => {
+					allInScope( cfgItem.sel ).forEach( ( el ) => {
+						try {
+							if ( el.swiper && typeof el.swiper.destroy === 'function' ) {
+								el.swiper.destroy( true, true );
+							}
+							new Swiper( el, cfgItem.opts );
+							log( 'Re-inited Swiper', cfgItem.sel );
+						} catch ( e ) {
+							log( 'Swiper re-init failed', cfgItem.sel, e );
+						}
+					} );
+				} );
+
+				allInScope( '.swiper' ).forEach( ( el ) => {
+					if (
+						el.classList.contains( 'portfolioSwiper' ) ||
+						el.classList.contains( 'projectSwiper' ) ||
+						el.classList.contains( 'postSwiper' )
+					) {
+						return;
+					}
+					if ( el.swiper ) return;
+					try {
+						new Swiper( el, {
+							speed: 500,
+							loop: el.dataset.loop !== 'false',
+							slidesPerView: 1,
+							spaceBetween: 16,
+							pagination: el.querySelector( '.swiper-pagination' )
+								? { el: el.querySelector( '.swiper-pagination' ), clickable: true }
+								: undefined,
+							navigation: el.querySelector( '.swiper-button-next' )
+								? {
+										nextEl: el.querySelector( '.swiper-button-next' ),
+										prevEl: el.querySelector( '.swiper-button-prev' ),
+								  }
+								: undefined,
+						} );
+						log( 'Re-inited generic Swiper' );
+					} catch ( e ) {
+						log( 'Generic Swiper re-init failed', e );
+					}
+				} );
+			} else {
+				log( 'Swiper global not available for re-init' );
+			}
+
+			const grid = inScope( '.project-gallery__masonry' );
+			if ( grid && typeof Masonry !== 'undefined' ) {
+				try {
+					const msnry = new Masonry( grid, {
+						itemSelector: '.project-gallery__item',
+						columnWidth: '.project-gallery__sizer',
+						gutter: '.project-gallery__gutter',
+						percentPosition: true,
+						transitionDuration: '0.2s',
+						originLeft: false,
+					} );
+					const media = grid.querySelectorAll( 'img, video' );
+					let pending = media.length;
+					const layout = () => {
+						try {
+							msnry.layout();
+						} catch ( e ) {}
+					};
+					const done = () => {
+						pending -= 1;
+						if ( pending <= 0 ) layout();
+					};
+					if ( pending === 0 ) {
+						layout();
+					} else {
+						media.forEach( ( el ) => {
+							if ( el.tagName === 'IMG' ) {
+								if ( el.complete && el.naturalHeight ) done();
+								else {
+									el.addEventListener( 'load', done, { once: true } );
+									el.addEventListener( 'error', done, { once: true } );
+								}
+							} else {
+								if ( el.readyState >= 1 ) done();
+								else {
+									el.addEventListener( 'loadedmetadata', done, { once: true } );
+									el.addEventListener( 'error', done, { once: true } );
+								}
+							}
+						} );
+					}
+					log( 'Re-inited Masonry gallery' );
+				} catch ( e ) {
+					log( 'Masonry re-init failed', e );
+				}
+			}
+
+			if ( typeof Fancybox !== 'undefined' && typeof Fancybox.bind === 'function' ) {
+				try {
+					Fancybox.unbind( '[data-fancybox]' );
+					Fancybox.bind( '[data-fancybox]', {
+						Carousel: { transition: 'slide' },
+					} );
+					log( 'Re-bound Fancybox' );
+				} catch ( e ) {
+					log( 'Fancybox re-init failed', e );
+				}
+			}
+
+			if ( typeof bootstrap !== 'undefined' ) {
+				try {
+					allInScope( '[data-bs-toggle="tooltip"]' ).forEach( ( el ) => {
+						try {
+							const prev = bootstrap.Tooltip.getInstance( el );
+							if ( prev ) prev.dispose();
+							new bootstrap.Tooltip( el );
+						} catch ( e ) {}
+					} );
+					allInScope( '[data-bs-toggle="popover"]' ).forEach( ( el ) => {
+						try {
+							const prev = bootstrap.Popover.getInstance( el );
+							if ( prev ) prev.dispose();
+							new bootstrap.Popover( el );
+						} catch ( e ) {}
+					} );
+				} catch ( e ) {}
+			}
+		}
+
 		_reinitCompat( visit ) {
-			// Do NOT re-dispatch DOMContentLoaded — our boot() listens for it and would
-			// call init() again, creating a second Swup and AbortError/TimeoutError storms.
 			try {
 				window.dispatchEvent( new Event( 'resize' ) );
 			} catch ( e ) {}
+
+			try {
+				this._reinitFrontendLibs();
+			} catch ( e ) {
+				log( '_reinitFrontendLibs error', e );
+			}
 
 			if ( typeof jQuery !== 'undefined' ) {
 				try {
@@ -668,7 +881,7 @@
 		swupManager.init();
 		bus.emit( 'ready', { WPSWUP: window.WPSWUP } );
 		document.dispatchEvent( new CustomEvent( 'wpswup:ready' ) );
-		log( 'Ready (Swup 4 / v1.5.2).' );
+		log( 'Ready (Swup 4 / v1.5.3).' );
 	};
 
 	if ( document.readyState === 'loading' ) {
