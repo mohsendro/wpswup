@@ -72,10 +72,15 @@ class Assets {
 	 * Inject data-swup-ignore-script so ScriptsPlugin never re-runs persistent scripts.
 	 */
 	public function tag_ignored_scripts( string $tag, string $handle, string $src ): string {
-		if ( in_array( $handle, self::IGNORE_SCRIPT_HANDLES, true ) ) {
-			if ( false === strpos( $tag, 'data-swup-ignore-script' ) ) {
-				$tag = str_replace( '<script ', '<script data-swup-ignore-script ', $tag );
+		$ignore = in_array( $handle, self::IGNORE_SCRIPT_HANDLES, true );
+		// Belt-and-suspenders: also match by src path so minified/renamed handles stay ignored.
+		if ( ! $ignore && is_string( $src ) && $src !== '' ) {
+			if ( preg_match( '#/(swup|wpswup|jquery|wp-includes/js/jquery|wp-hooks|wp-i18n)(/|\.|-)#i', $src ) ) {
+				$ignore = true;
 			}
+		}
+		if ( $ignore && false === strpos( $tag, 'data-swup-ignore-script' ) ) {
+			$tag = str_replace( '<script ', '<script data-swup-ignore-script ', $tag );
 		}
 		return $tag;
 	}
