@@ -45,6 +45,10 @@ class Settings {
 		'swup_forms'            => true,
 		'swup_animation_scope'  => 'html',
 		'swup_native'           => false,
+		// v1.5.0 — full-page asset pipeline
+		'swup_scripts_plugin'   => true,
+		'swup_await_media'      => true,
+		'swup_asset_timeout'    => 8000,
 		'compat_cache_plugins'  => true,
 		'compat_page_builders'  => true,
 		'debug_mode'            => false,
