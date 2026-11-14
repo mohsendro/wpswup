@@ -2,9 +2,9 @@
 # This file is distributed under the same license as the WP Swup plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: WP Swup 1.2.1\n"
+"Project-Id-Version: WP Swup 1.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/mohsendro/wpswup/issues\n"
-"POT-Creation-Date: 2026-11-13 18:16+0000\n"
+"POT-Creation-Date: 2026-11-14 07:00+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -12,201 +12,171 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
-"X-Domain: wpswup\n"
 
-#: includes/admin/class-settings-page.php:21
+#: includes/admin/class-settings-page.php
 msgid "WP Swup"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:94
-msgid "SPA transitions + scroll-based lazy section rendering"
+#: includes/admin/class-settings-page.php
+msgid "SPA-like page transitions powered by Swup.js 4"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:103
+#: includes/admin/class-settings-page.php
 msgid "Swup / SPA"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:104
-msgid "Lazy Renderer"
-msgstr ""
-
-#: includes/admin/class-settings-page.php:105
+#: includes/admin/class-settings-page.php
 msgid "Compatibility"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:106
-msgid "Sections & Info"
+#: includes/admin/class-settings-page.php
+msgid "Info"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:111
+#: includes/admin/class-settings-page.php
 msgid "Page Transition Settings"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:114
+#: includes/admin/class-settings-page.php
 msgid "Enable Swup"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:123
+#: includes/admin/class-settings-page.php
 msgid "Animation Theme"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:128
+#: includes/admin/class-settings-page.php
 msgid "Fade (official)"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:129
+#: includes/admin/class-settings-page.php
 msgid "Slide (official)"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:130
+#: includes/admin/class-settings-page.php
 msgid "Slide reversed"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:131
+#: includes/admin/class-settings-page.php
 msgid "Overlay → right"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:132
+#: includes/admin/class-settings-page.php
 msgid "Overlay → left"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:133
+#: includes/admin/class-settings-page.php
 msgid "Overlay → top"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:134
+#: includes/admin/class-settings-page.php
 msgid "Overlay → bottom"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:135
+#: includes/admin/class-settings-page.php
 msgid "None"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:142
+#: includes/admin/class-settings-page.php
 msgid "Official Swup themes: Fade, Slide, Overlay. See swup.js.org/themes"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:146
+#: includes/admin/class-settings-page.php
 msgid "Duration (ms)"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:150
+#: includes/admin/class-settings-page.php
 msgid "Cache Pages"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:159
+#: includes/admin/class-settings-page.php
 msgid "Swap Containers"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:162
+#: includes/admin/class-settings-page.php
 msgid "Leave empty to auto-detect (WoodMart, Elementor, …). Example: #main, .main-page-wrapper"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:166
+#: includes/admin/class-settings-page.php
 msgid "Link Selector"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:170
+#: includes/admin/class-settings-page.php
 msgid "Reset Scroll"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:179
+#: includes/admin/class-settings-page.php
 msgid "Animated Scroll Plugin"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:188
+#: includes/admin/class-settings-page.php
 msgid "Preload on Hover"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:197
+#: includes/admin/class-settings-page.php
 msgid "Forms Plugin"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:206
+#: includes/admin/class-settings-page.php
 msgid "Animation Scope"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:215
+#: includes/admin/class-settings-page.php
 msgid "Native View Transitions"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:229
-msgid "Lazy Section Renderer"
+#: includes/admin/class-settings-page.php
+msgid "Scripts Plugin"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:232
-msgid "Enable Lazy Renderer"
+#: includes/admin/class-settings-page.php
+msgid "Re-evaluate page scripts on transition via @swup/scripts-plugin (head + body). Persistent handles are ignored."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:241
-msgid "Observer Threshold"
+#: includes/admin/class-settings-page.php
+msgid "Await Media & Images"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:245
-msgid "Root Margin"
+#: includes/admin/class-settings-page.php
+msgid "Un-lazy and decode images/backgrounds before DOM replace so the new page is fully painted."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:257
-msgid "Cache Plugin Support"
+#: includes/admin/class-settings-page.php
+msgid "Asset Timeout (ms)"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:266
-msgid "Page Builder Support"
+#: includes/admin/class-settings-page.php
+msgid "Maximum wait for stylesheets, scripts, and images before forcing content replace (1000–30000)."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:272
-msgid "Elementor, WooCommerce, WoodMart re-init after transitions."
+#: includes/admin/class-settings-page.php
+msgid "Cache Plugins"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:276
+#: includes/admin/class-settings-page.php
+msgid "Add Cache-Control / Vary headers so HTML is not served stale after SPA navigations."
+msgstr ""
+
+#: includes/admin/class-settings-page.php
+msgid "Page Builders"
+msgstr ""
+
+#: includes/admin/class-settings-page.php
+msgid "Elementor / WoodMart re-init after each transition."
+msgstr ""
+
+#: includes/admin/class-settings-page.php
 msgid "Debug Mode"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:290
-msgid "Detected Sections"
+#: includes/admin/class-settings-page.php
+msgid "About"
 msgstr ""
 
-#: includes/admin/class-settings-page.php:292
-msgid "No template-lazy sections found yet."
+#: includes/admin/class-settings-page.php
+msgid "WP Swup brings SPA-like page transitions to WordPress using Swup.js 4, with first-class support for WooCommerce, Elementor, and WoodMart."
 msgstr ""
 
-#: includes/admin/class-settings-page.php:300
+#: includes/admin/class-settings-page.php
 msgid "Version"
-msgstr ""
-
-#: includes/admin/class-settings-page.php:305
-msgid "Save Settings"
-msgstr ""
-
-#: template-lazy/features/render.php:12
-msgid "Features"
-msgstr ""
-
-#: template-lazy/features/render.php:19
-msgid "Lightning Fast"
-msgstr ""
-
-#: template-lazy/features/render.php:19
-msgid "SPA-like transitions with zero page reloads."
-msgstr ""
-
-#: template-lazy/features/render.php:20
-msgid "Theme Friendly"
-msgstr ""
-
-#: template-lazy/features/render.php:20
-msgid "Works alongside any WordPress theme."
-msgstr ""
-
-#: template-lazy/features/render.php:21
-msgid "Extensible API"
-msgstr ""
-
-#: template-lazy/features/render.php:21
-msgid "Hooks, filters, and JS events for developers."
-msgstr ""
-
-#: template-lazy/hero/render.php:25
-msgid "Read the Blog"
 msgstr ""
