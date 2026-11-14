@@ -16,7 +16,7 @@
 	background: var(--wpswup-progress-color, #2271b1);
 	transition: transform var(--wpswup-duration, 0.4s) ease-out;
 	overflow: hidden;
-	ointer-events: none;
+	pointer-events: none;
 }
 
 .swup-progress-bar.swup-progress-bar--visible {
