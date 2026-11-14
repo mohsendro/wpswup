@@ -2,6 +2,7 @@
 	'use strict';
 
 	const cfg = window.wpswupConfig || {};
+	const ASSET_TIMEOUT = Math.max( 1000, parseInt( cfg.assetTimeout, 10 ) || 8000 );
 
 	const log = ( ...args ) => {
 		if ( cfg.debug ) console.log( '[WPSWUP]', ...args );
@@ -57,31 +58,43 @@
 		}
 	}
 
-	/**
-	 * Inject every stylesheet from the next page into <head> and wait until
-	 * each has loaded (including CSS @import chains). Mimics full page load.
-	 */
-	function ensureStylesheets( doc ) {
-		if ( ! doc || ! doc.head ) return Promise.resolve();
+	function withTimeout( promise, ms ) {
+		return Promise.race( [
+			promise,
+			new Promise( ( resolve ) => setTimeout( resolve, ms ) ),
+		] );
+	}
+
+	function ensureStylesheets( doc, containers ) {
+		if ( ! doc ) return Promise.resolve();
 
 		const existing = new Map();
-		document.head.querySelectorAll( 'link[rel="stylesheet"]' ).forEach( ( link ) => {
+		document.querySelectorAll( 'link[rel="stylesheet"]' ).forEach( ( link ) => {
 			const href = link.getAttribute( 'href' );
 			if ( href ) existing.set( normUrl( href ), link );
 		} );
 
 		const pending = [];
 		const nextKeys = new Set();
+		const containerEls = ( containers || [] )
+			.map( ( s ) => {
+				try {
+					return doc.querySelector( s );
+				} catch ( e ) {
+					return null;
+				}
+			} )
+			.filter( Boolean );
 
-		doc.head.querySelectorAll( 'link[rel="stylesheet"]' ).forEach( ( nl ) => {
+		const isInsideContainer = ( el ) =>
+			containerEls.some( ( c ) => c === el || ( c.contains && c.contains( el ) ) );
+
+		doc.querySelectorAll( 'link[rel="stylesheet"]' ).forEach( ( nl ) => {
 			const href = nl.getAttribute( 'href' );
 			if ( ! href ) return;
 			const key = normUrl( href );
 			nextKeys.add( key );
-
-			if ( existing.has( key ) ) {
-				return;
-			}
+			if ( existing.has( key ) ) return;
 
 			const link = document.createElement( 'link' );
 			link.rel = 'stylesheet';
@@ -101,14 +114,14 @@
 				};
 				link.addEventListener( 'load', finish );
 				link.addEventListener( 'error', finish );
-				setTimeout( finish, 8000 );
+				setTimeout( finish, ASSET_TIMEOUT );
 			} );
 			pending.push( p );
 			document.head.appendChild( link );
 			log( 'Preload stylesheet', href );
 		} );
 
-		doc.head.querySelectorAll( 'style[id]' ).forEach( ( ns ) => {
+		doc.querySelectorAll( 'style[id]' ).forEach( ( ns ) => {
 			if ( ! ns.id ) return;
 			const cur = document.getElementById( ns.id );
 			if ( cur ) {
@@ -119,6 +132,21 @@
 				style.textContent = ns.textContent;
 				document.head.appendChild( style );
 			}
+		} );
+
+		doc.querySelectorAll( 'style:not([id])' ).forEach( ( ns ) => {
+			if ( isInsideContainer( ns ) ) return;
+			const text = ( ns.textContent || '' ).trim();
+			if ( ! text ) return;
+			const already = Array.from( document.querySelectorAll( 'style:not([id])' ) ).some(
+				( s ) => ( s.textContent || '' ).trim() === text
+			);
+			if ( already ) return;
+			const style = document.createElement( 'style' );
+			style.setAttribute( 'data-wpswup-anon', '1' );
+			style.textContent = ns.textContent;
+			document.head.appendChild( style );
+			log( 'Injected anonymous style block' );
 		} );
 
 		existing.forEach( ( link, key ) => {
@@ -136,11 +164,8 @@
 		} );
 	}
 
-	/**
-	 * Preload external scripts from next <head> that are not yet on the page.
-	 */
-	function ensureHeadScripts( doc ) {
-		if ( ! doc || ! doc.head ) return Promise.resolve();
+	function ensurePageScripts( doc ) {
+		if ( ! doc ) return Promise.resolve();
 
 		const have = new Set();
 		document.querySelectorAll( 'script[src]' ).forEach( ( s ) => {
@@ -149,7 +174,27 @@
 		} );
 
 		const pending = [];
-		doc.head.querySelectorAll( 'script[src]' ).forEach( ( ns ) => {
+
+		doc.querySelectorAll( 'script[id$="-js-extra"], script[id$="-js-before"], script[id$="-js-after"]' ).forEach( ( ns ) => {
+			if ( ! ns.id ) return;
+			const cur = document.getElementById( ns.id );
+			if ( cur ) {
+				if ( cur.textContent !== ns.textContent ) {
+					cur.textContent = ns.textContent;
+					log( 'Updated localized block', ns.id );
+				}
+			} else {
+				const script = document.createElement( 'script' );
+				script.id = ns.id;
+				script.type = ns.type || 'text/javascript';
+				script.textContent = ns.textContent;
+				document.head.appendChild( script );
+				log( 'Injected localized block', ns.id );
+			}
+		} );
+
+		doc.querySelectorAll( 'script[src]' ).forEach( ( ns ) => {
+			if ( ns.hasAttribute( 'data-swup-ignore-script' ) ) return;
 			const src = ns.getAttribute( 'src' );
 			if ( ! src ) return;
 			const key = normUrl( src );
@@ -161,10 +206,11 @@
 			if ( ns.type ) script.type = ns.type;
 			if ( ns.async ) script.async = true;
 			if ( ns.defer ) script.defer = true;
+			if ( ns.crossOrigin ) script.crossOrigin = ns.crossOrigin;
 			const p = new Promise( ( resolve ) => {
 				script.addEventListener( 'load', resolve );
 				script.addEventListener( 'error', resolve );
-				setTimeout( resolve, 8000 );
+				setTimeout( resolve, ASSET_TIMEOUT );
 			} );
 			pending.push( p );
 			document.head.appendChild( script );
@@ -172,6 +218,158 @@
 		} );
 
 		return Promise.all( pending );
+	}
+
+	function ensureMediaAndImages( doc, containers ) {
+		if ( ! cfg.awaitMedia || ! doc ) return Promise.resolve();
+
+		const roots = [];
+		( containers || [] ).forEach( ( sel ) => {
+			try {
+				const el = doc.querySelector( sel );
+				if ( el ) roots.push( el );
+			} catch ( e ) {}
+		} );
+		if ( ! roots.length && doc.body ) roots.push( doc.body );
+
+		const urls = new Set();
+		const pending = [];
+
+		const collectUrl = ( url ) => {
+			if ( ! url || typeof url !== 'string' ) return;
+			const clean = url.trim().replace( /^url\(["']?/, '' ).replace( /["']?\)$/, '' );
+			if ( ! clean || clean.startsWith( 'data:' ) ) return;
+			urls.add( clean );
+		};
+
+		roots.forEach( ( root ) => {
+			root.querySelectorAll( 'img' ).forEach( ( img ) => {
+				const ds = img.getAttribute( 'data-src' ) || img.getAttribute( 'data-lazy-src' ) || img.getAttribute( 'data-wood-src' );
+				const dss = img.getAttribute( 'data-srcset' ) || img.getAttribute( 'data-lazy-srcset' );
+				if ( ds && ! img.getAttribute( 'src' ) ) {
+					img.setAttribute( 'src', ds );
+				}
+				if ( dss && ! img.getAttribute( 'srcset' ) ) {
+					img.setAttribute( 'srcset', dss );
+				}
+				img.setAttribute( 'loading', 'eager' );
+				img.setAttribute( 'decoding', 'sync' );
+				if ( img.getAttribute( 'src' ) ) collectUrl( img.getAttribute( 'src' ) );
+			} );
+
+			root.querySelectorAll( 'picture source' ).forEach( ( source ) => {
+				const ds = source.getAttribute( 'data-srcset' ) || source.getAttribute( 'data-lazy-srcset' );
+				if ( ds && ! source.getAttribute( 'srcset' ) ) {
+					source.setAttribute( 'srcset', ds );
+				}
+				if ( source.getAttribute( 'srcset' ) ) {
+					source.getAttribute( 'srcset' ).split( ',' ).forEach( ( part ) => {
+						const u = part.trim().split( /\s+/ )[ 0 ];
+						collectUrl( u );
+					} );
+				}
+			} );
+
+			root.querySelectorAll( '[data-bg], [data-wood-bg], [style*="background"]' ).forEach( ( el ) => {
+				const dbg = el.getAttribute( 'data-bg' ) || el.getAttribute( 'data-wood-bg' );
+				if ( dbg ) {
+					collectUrl( dbg );
+					if ( ! el.style.backgroundImage ) {
+						el.style.backgroundImage = 'url("' + dbg + '")';
+					}
+				}
+				const style = el.getAttribute( 'style' ) || '';
+				const m = style.match( /background(?:-image)?\s*:\s*url\(([^)]+)\)/i );
+				if ( m ) collectUrl( m[ 1 ] );
+			} );
+		} );
+
+		urls.forEach( ( url ) => {
+			const p = new Promise( ( resolve ) => {
+				const img = new Image();
+				img.onload = () => {
+					if ( typeof img.decode === 'function' ) {
+						img.decode().then( resolve ).catch( resolve );
+					} else {
+						resolve();
+					}
+				};
+				img.onerror = resolve;
+				img.src = url;
+				setTimeout( resolve, ASSET_TIMEOUT );
+			} );
+			pending.push( p );
+		} );
+
+		log( 'Awaiting media', urls.size );
+		return Promise.all( pending );
+	}
+
+	function syncSvgSprites( doc ) {
+		if ( ! doc ) return;
+
+		let holder = document.getElementById( 'wpswup-svg-sprite-holder' );
+		if ( ! holder ) {
+			holder = document.createElement( 'div' );
+			holder.id = 'wpswup-svg-sprite-holder';
+			holder.setAttribute( 'aria-hidden', 'true' );
+			holder.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden;visibility:hidden;pointer-events:none';
+			document.body.appendChild( holder );
+		}
+
+		const known = new Set();
+		holder.querySelectorAll( '[id]' ).forEach( ( el ) => {
+			if ( el.id ) known.add( el.id );
+		} );
+
+		doc.querySelectorAll( 'svg symbol[id], svg defs > [id], symbol[id]' ).forEach( ( sym ) => {
+			const id = sym.id;
+			if ( ! id || known.has( id ) ) return;
+			const clone = sym.cloneNode( true );
+			if ( clone.tagName.toLowerCase() === 'symbol' || clone.closest( 'defs' ) ) {
+				let svg = holder.querySelector( 'svg' );
+				if ( ! svg ) {
+					svg = document.createElementNS( 'http://www.w3.org/2000/svg', 'svg' );
+					svg.setAttribute( 'xmlns', 'http://www.w3.org/2000/svg' );
+					svg.style.display = 'none';
+					holder.appendChild( svg );
+				}
+				let defs = svg.querySelector( 'defs' );
+				if ( ! defs ) {
+					defs = document.createElementNS( 'http://www.w3.org/2000/svg', 'defs' );
+					svg.appendChild( defs );
+				}
+				defs.appendChild( document.importNode ? document.importNode( clone, true ) : clone );
+			} else {
+				holder.appendChild( document.importNode ? document.importNode( clone, true ) : clone );
+			}
+			known.add( id );
+			log( 'Synced SVG symbol', id );
+		} );
+	}
+
+	function refreshRenderedSvgs( containers ) {
+		( containers || [] ).forEach( ( sel ) => {
+			const root = document.querySelector( sel );
+			if ( ! root ) return;
+			root.querySelectorAll( 'use' ).forEach( ( use ) => {
+				const href = use.getAttribute( 'href' ) || use.getAttribute( 'xlink:href' );
+				if ( ! href || href.charAt( 0 ) !== '#' ) return;
+				use.setAttribute( 'href', href );
+				if ( use.hasAttribute( 'xlink:href' ) ) {
+					use.setAttribute( 'xlink:href', href );
+				}
+			} );
+		} );
+	}
+
+	function syncBodyClassesUniversal( doc ) {
+		if ( ! doc || ! doc.body ) return;
+		const next = doc.body.getAttribute( 'class' );
+		if ( typeof next === 'string' ) {
+			document.body.className = next;
+			log( 'Synced body classes' );
+		}
 	}
 
 	class SwupManager {
@@ -195,7 +393,7 @@
 				plugins.push(
 					new SwupHeadPlugin( {
 						awaitAssets: true,
-						timeout: 8000,
+						timeout: ASSET_TIMEOUT,
 						persistTags: ( el ) => {
 							if ( ! el || ! el.tagName ) return false;
 							const tag = el.tagName.toLowerCase();
@@ -212,6 +410,16 @@
 							if ( tag === 'style' ) return true;
 							return false;
 						},
+					} )
+				);
+			}
+
+			if ( cfg.scriptsPlugin && typeof SwupScriptsPlugin !== 'undefined' ) {
+				plugins.push(
+					new SwupScriptsPlugin( {
+						head: true,
+						body: true,
+						optin: false,
 					} )
 				);
 			}
@@ -280,25 +488,33 @@
 			const s = this.swup;
 			if ( ! s || ! s.hooks ) return;
 
-			// As soon as next HTML is available — start loading its CSS/JS in the background
-			s.hooks.on( 'page:load', ( visit ) => {
+			const runAssetPipeline = ( visit ) => {
 				const doc = visit && visit.to && visit.to.document;
-				if ( ! doc ) return;
-				visit._wpswupAssets = Promise.all( [
-					ensureStylesheets( doc ),
-					ensureHeadScripts( doc ),
+				if ( ! doc ) return Promise.resolve();
+				const containers = this.containers;
+				return Promise.all( [
+					ensureStylesheets( doc, containers ),
+					ensurePageScripts( doc ),
+					ensureMediaAndImages( doc, containers ),
 				] ).then( () => {
+					syncSvgSprites( doc );
 					log( 'Next page assets ready' );
 				} );
+			};
+
+			s.hooks.on( 'page:load', ( visit ) => {
+				visit._wpswupAssets = runAssetPipeline( visit );
 			} );
 
-			// Do NOT replace DOM until assets for the next page are fully ready
 			s.hooks.before( 'content:replace', async ( visit ) => {
 				const doc = visit && visit.to && visit.to.document;
 				if ( visit && visit._wpswupAssets ) {
-					await visit._wpswupAssets;
+					await withTimeout( visit._wpswupAssets, ASSET_TIMEOUT + 500 );
 				} else if ( doc ) {
-					await Promise.all( [ ensureStylesheets( doc ), ensureHeadScripts( doc ) ] );
+					await withTimeout( runAssetPipeline( visit ), ASSET_TIMEOUT + 500 );
+				}
+				if ( doc ) {
+					syncBodyClassesUniversal( doc );
 				}
 			} );
 
@@ -312,6 +528,7 @@
 					const el = document.querySelector( sel );
 					if ( el ) el.classList.add( 'transition-swup' );
 				} );
+				refreshRenderedSvgs( this.containers );
 			} );
 
 			s.hooks.on( 'page:view', ( visit ) => {
@@ -328,12 +545,31 @@
 		}
 
 		_reinitCompat( visit ) {
+			try {
+				document.dispatchEvent( new Event( 'DOMContentLoaded', { bubbles: true } ) );
+				window.dispatchEvent( new Event( 'load' ) );
+				window.dispatchEvent( new Event( 'resize' ) );
+			} catch ( e ) {}
+
+			if ( typeof jQuery !== 'undefined' ) {
+				try {
+					jQuery( document ).trigger( 'post-load' );
+				} catch ( e ) {}
+			}
+
 			if ( cfg.compatWoo && typeof jQuery !== 'undefined' ) {
 				try {
 					jQuery( document.body ).trigger( 'wc_fragment_refresh' );
 					jQuery( document.body ).trigger( 'updated_wc_div' );
+					jQuery( document.body ).trigger( 'wc-product-gallery-after-init' );
+					jQuery( '.variations_form' ).each( function () {
+						if ( jQuery.fn.wc_variation_form ) {
+							jQuery( this ).wc_variation_form();
+						}
+					} );
 				} catch ( e ) {}
 			}
+
 			if ( cfg.compatElementor && typeof elementorFrontend !== 'undefined' ) {
 				try {
 					if ( elementorFrontend.elementsHandler ) {
@@ -346,8 +582,15 @@
 					}
 				} catch ( e ) {}
 			}
+
 			if ( typeof window.woodmartThemeModule === 'object' ) {
 				try {
+					if ( typeof woodmartThemeModule.wdShopPageInit === 'function' ) {
+						woodmartThemeModule.wdShopPageInit();
+					}
+					if ( typeof woodmartThemeModule.woodImagesLoaded === 'function' ) {
+						woodmartThemeModule.woodImagesLoaded();
+					}
 					Object.keys( woodmartThemeModule ).forEach( ( key ) => {
 						if ( typeof woodmartThemeModule[ key ] === 'function' ) {
 							try {
@@ -357,9 +600,11 @@
 					} );
 				} catch ( e ) {}
 			}
+
 			if ( window.WPSWUP && typeof window.WPSWUP.scheduleCloseOverlays === 'function' ) {
 				window.WPSWUP.scheduleCloseOverlays();
 			}
+
 			document.dispatchEvent( new CustomEvent( 'wpswup:afterPageTransition', { detail: { visit } } ) );
 			if ( typeof jQuery !== 'undefined' ) {
 				jQuery( document ).trigger( 'wpswup_after_page_transition' );
@@ -386,7 +631,7 @@
 		swupManager.init();
 		bus.emit( 'ready', { WPSWUP: window.WPSWUP } );
 		document.dispatchEvent( new CustomEvent( 'wpswup:ready' ) );
-		log( 'Ready (Swup 4).' );
+		log( 'Ready (Swup 4 / v1.5.0).' );
 	};
 
 	if ( document.readyState === 'loading' ) {
