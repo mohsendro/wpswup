@@ -1,6 +1,12 @@
 ( function () {
 	'use strict';
 
+	// Prevent ScriptsPlugin (or any re-injection) from creating a second Swup instance.
+	if ( window.__WPSWUP_BOOTED ) {
+		return;
+	}
+	window.__WPSWUP_BOOTED = true;
+
 	const cfg = window.wpswupConfig || {};
 	const ASSET_TIMEOUT = Math.max( 1000, parseInt( cfg.assetTimeout, 10 ) || 8000 );
 
@@ -414,12 +420,15 @@
 				);
 			}
 
+			// optin:true = only scripts marked data-swup-reload-script are re-run.
+			// optin:false was re-executing wpswup-main / jquery / theme bundles and
+			// creating a second Swup instance after every transition.
 			if ( cfg.scriptsPlugin && typeof SwupScriptsPlugin !== 'undefined' ) {
 				plugins.push(
 					new SwupScriptsPlugin( {
 						head: true,
 						body: true,
-						optin: false,
+						optin: true,
 					} )
 				);
 			}
@@ -481,7 +490,7 @@
 			this.swup = new Swup( options );
 			if ( window.WPSWUP ) window.WPSWUP.swup = this.swup;
 			this._bindEvents();
-			log( 'Swup 4 initialized. Containers:', this.containers, 'plugins:', plugins.length );
+			log( 'Swup 4 initialized. Containers:', this.containers, 'plugins:', plugins.length, 'scriptsPlugin:', !! cfg.scriptsPlugin, 'awaitMedia:', !! cfg.awaitMedia );
 		}
 
 		_bindEvents() {
@@ -489,9 +498,21 @@
 			if ( ! s || ! s.hooks ) return;
 
 			const runAssetPipeline = ( visit ) => {
-				const doc = visit && visit.to && visit.to.document;
-				if ( ! doc ) return Promise.resolve();
+				let doc = visit && visit.to && visit.to.document;
+				if ( ! doc && visit && visit.to && visit.to.html ) {
+					try {
+						doc = new DOMParser().parseFromString( visit.to.html, 'text/html' );
+						log( 'Parsed document from visit.to.html fallback' );
+					} catch ( e ) {
+						log( 'Failed to parse visit.to.html', e );
+					}
+				}
+				if ( ! doc ) {
+					log( 'Asset pipeline skipped: no document on visit.to' );
+					return Promise.resolve();
+				}
 				const containers = this.containers;
+				log( 'Asset pipeline start', 'containers=', containers );
 				return Promise.all( [
 					ensureStylesheets( doc, containers ),
 					ensurePageScripts( doc ),
@@ -499,6 +520,8 @@
 				] ).then( () => {
 					syncSvgSprites( doc );
 					log( 'Next page assets ready' );
+				} ).catch( ( err ) => {
+					log( 'Asset pipeline error', err );
 				} );
 			};
 
@@ -631,7 +654,7 @@
 		swupManager.init();
 		bus.emit( 'ready', { WPSWUP: window.WPSWUP } );
 		document.dispatchEvent( new CustomEvent( 'wpswup:ready' ) );
-		log( 'Ready (Swup 4 / v1.5.0).' );
+		log( 'Ready (Swup 4 / v1.5.1).' );
 	};
 
 	if ( document.readyState === 'loading' ) {
